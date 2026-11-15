@@ -1,0 +1,26 @@
+# Python / tooling
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+.DS_Store
+
+# Generated workspaces are rebuilt from their seed (see docs/PROJECT.md §3.1).
+# Only the small eval JSONL files under data/ are committed.
+data/workspaces/
+data/**/raw/
+data/**/notes/
+
+# Training artifacts
+checkpoints/
+wandb/
+*.safetensors
+*.pt
+*.bin
+
+# Large result files (keep metrics JSON, curves and sampled trajectories)
+results/**/completions*.json
+results/**/rollouts/
+results/**/*.log

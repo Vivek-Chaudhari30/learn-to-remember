@@ -1,0 +1,53 @@
+# learn-to-remember base config. Everything device/model-specific lives here so
+# the same code runs on the Mac (MPS, plumbing only) and on a CUDA GPU.
+# Values marked (spec) come from docs/PROJECT.md; changes go in docs/DECISIONS.md.
+
+model:
+  # Default policy (spec §3.5). The final choice is made by the M3 probe.
+  id: Qwen/Qwen2.5-1.5B-Instruct
+  dev_id: Qwen/Qwen2.5-0.5B-Instruct   # Mac plumbing only, no conclusions
+  dtype: auto          # auto -> bf16 (cuda) / fp16 (mps) / fp32 (cpu). Consider fp16 on T4 (bf16 is emulated).
+  device: auto         # auto -> cuda -> mps -> cpu
+
+workspace:              # filled in at M1
+  seed_a: 0             # company A (train + eval)
+  seed_b: 1             # company B (transfer eval only)
+  note_versions: [v0, v1, v2, v3]
+
+env:                    # filled in at M2 (spec §3.2)
+  max_tool_turns: 6
+  max_gen_tokens_per_turn: 256
+  max_tool_output_tokens: 400
+  max_context_tokens: 4096
+
+reward:                 # spec §3.3
+  correct: 1.0
+  format_bonus: 0.1
+  cost_lambda: 0.2      # main run; sweep {0, 0.2, 0.5}
+  cost_budget_tokens: 4000
+
+rollout:
+  group_size: 8
+  temperature: 1.0
+  top_p: 1.0
+
+train:
+  lr: 1.0e-5            # GRPO-Zero: 1e-6 showed no gain in 70 steps; 1e-5 gave +4.4 pts over 200 steps
+  kl_coef: 0.04
+  clip_eps: 0.2
+  ppo_epochs: 1
+  grad_clip: 1.0
+  adv_eps: 1.0e-4
+  loss_norm: seq_mean   # seq_mean (DeepSeekMath / spec default) | dr_grpo (ablation)
+  skip_zero_variance_groups: false   # DAPO-style; log the count either way
+  steps: 200
+  prompts_per_step: 8
+  micro_batch: 2
+  checkpoint_every: 10
+  seed: 0
+  grad_checkpoint: true
+  lora:
+    r: 16
+    alpha: 32
+    dropout: 0.05
+    target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]

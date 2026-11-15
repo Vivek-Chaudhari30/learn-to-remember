@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "learn-to-remember"
+version = "0.0.1"
+description = "GRPO + LoRA training of a small LLM to use a text-notes memory over a synthetic workspace"
+requires-python = ">=3.10"
+# Runtime deps are pinned in requirements.txt (installed separately so Colab/Kaggle
+# can keep their preinstalled CUDA torch).
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Makes `import learn_to_remember` work in pytest even without `pip install -e .`
+pythonpath = ["src"]

@@ -1,0 +1,15 @@
+# Core (Mac/MPS for dev, CUDA for training)
+torch>=2.2
+transformers>=4.45
+accelerate>=0.34
+peft>=0.12          # LoRA policy; the frozen reference is the same model with the adapter disabled
+
+# Config + tests
+pyyaml>=6.0
+numpy>=1.24
+pytest>=8.0
+
+# Added in later milestones:
+#   rank_bm25 (M2, or a hand-written BM25), matplotlib (M6)
+#   trl: cross-check of the GRPO math ONLY, never the trainer
+#   vllm: optional GPU-only rollout speed-up, never on macOS
