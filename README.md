@@ -4,7 +4,7 @@ Teaching a small open model (~1.5B, default `Qwen/Qwen2.5-1.5B-Instruct`) to **u
 
 Successor to [GRPO-Zero](https://github.com/Vivek-Chaudhari30/GRPO-Zero), which provides the GRPO engine. Inspired by Engram's [*Learning in a world of notes*](https://engram.com/blog/learning-in-a-world-of-notes).
 
-**Status:** M0 (bootstrap). No results yet. Everything reported here will be real measured numbers; see [`docs/RESULTS.md`](docs/RESULTS.md).
+**Status:** M1 done (seeded workspace generator; eval sets in `data/eval/`). No model results yet. Everything reported here will be real measured numbers; see [`docs/RESULTS.md`](docs/RESULTS.md).
 
 - Design spec: [`docs/PROJECT.md`](docs/PROJECT.md)
 - Decision log: [`docs/DECISIONS.md`](docs/DECISIONS.md)
@@ -17,3 +17,11 @@ python3.12 -m venv .venv
 .venv/bin/pip install -e . --no-deps
 .venv/bin/python -m pytest -q
 ```
+
+## Workspace
+
+```bash
+.venv/bin/python scripts/generate_workspace.py   # companies A (seed 0) and B (seed 1)
+```
+
+This writes the full workspace to `data/workspaces/` (gitignored, rebuilt from the seed) and the committed eval sets to `data/eval/`. Stats are in [`docs/RESULTS.md`](docs/RESULTS.md).

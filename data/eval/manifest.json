@@ -1,0 +1,36 @@
+{
+  "company_a": {
+    "company": "company_a",
+    "generator": "m1-2026-11-15",
+    "seed": 0,
+    "sha256": {
+      "entities.jsonl": "0b57b6f7f5d913060f9330b6749eab956cb401349e696ef20db327de2604b107",
+      "events.jsonl": "6e81e2289b58bc9ee5bd4f104fee976340676b028957c9099e0f015123b2c0ae",
+      "heldout.json": "fa908e188cbc2264433e7350fc9302bacbd2f2dbc21674892da2a80185bcc8d7",
+      "notes_v0.jsonl": "6bc5a7fc77ae6ec446272fac5441da31077f22e8544c15422afcddfe86075e98",
+      "notes_v1.jsonl": "bc4d2bca9a5c6bc4b6e4800942effba956f2e8c5a073ae38ac7ccd47f12bedc2",
+      "notes_v2.jsonl": "0ff9f4b601bdca49b7d0b523c2405219df98c3c3d04dee55937ced72924aa170",
+      "notes_v3.jsonl": "3d58185397f1028e2abf108df378e9fc34b1ca118682df17f0bf0e4d2f351cf6",
+      "questions_eval.jsonl": "403e0c275f5a1b77e2a79b0c3cfd84b6b758d07d5b8bcc4522381cd200461f12",
+      "questions_train.jsonl": "c7d0541cfa21718bc95b19b6493f932c6cba8dd0b02b6ecf5b5973583b0e3f8b",
+      "raw_docs.jsonl": "04e8821f6db59cca443af3d7245909b66fc270479367566112cdf9dc8817a9a7"
+    }
+  },
+  "company_b": {
+    "company": "company_b",
+    "generator": "m1-2026-11-15",
+    "seed": 1,
+    "sha256": {
+      "entities.jsonl": "4f392c924d0374545ae626427e8461ee3c81b1e8414ebf674cef8877193aa67f",
+      "events.jsonl": "b46e797abc90a5f7e064e1f1d26c7c14be6ddc39c079fca8416011bcaa652be0",
+      "heldout.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "notes_v0.jsonl": "d88eda9f30220aa69306a1cd1d78cf36fa8b5800a4a8fe227f98409b0d25048e",
+      "notes_v1.jsonl": "22fdb8cb36b1f65f34692750b57a22bb6e98e7b760e184712a4b69ebff39999c",
+      "notes_v2.jsonl": "404d6ab14c44e8187872e870480b9e65f5fb47db5ad185b1baca2a6db3e60e59",
+      "notes_v3.jsonl": "5ba1e55aa482dda46a571cfc86efbe29bfc052c919082e771d75a50ac9b5fafa",
+      "questions_eval.jsonl": "8cfa5a5fee1e2695440e6f4567b4d11c5ca95a2e4fa34719019484ec7066b46c",
+      "questions_train.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_docs.jsonl": "c1858262f9ae8c8594569583a89e8a9cc67a90878975ca90e0d6b4c7b4a6a21a"
+    }
+  }
+}

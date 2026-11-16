@@ -1,0 +1,344 @@
+[
+  {
+    "company": "company_a",
+    "docs": {
+      "by_type": {
+        "chatter": 40,
+        "client_accounts": 22,
+        "contract_summary": 42,
+        "directory": 6,
+        "email": 137,
+        "hr_announcement": 124,
+        "kickoff_memo": 15,
+        "meeting_notes": 86,
+        "status_report": 212,
+        "team_roster": 28,
+        "year_end_review": 34
+      },
+      "max_tokens": 385,
+      "median_tokens": 246.0,
+      "min_tokens": 164,
+      "n": 746,
+      "total_tokens": 183960
+    },
+    "entities": {
+      "client": 22,
+      "contract": 36,
+      "office": 6,
+      "person": 107,
+      "project": 51,
+      "team": 15
+    },
+    "n_candidates": 1543,
+    "n_entities": 237,
+    "n_events": 423,
+    "n_heldout_entities": 22,
+    "notes": {
+      "v0": {
+        "as_of": "2024-09-30",
+        "coverage_actual": 0.362,
+        "index_pages": 7,
+        "max_page_tokens": 508,
+        "pages": 85,
+        "total_tokens": 13625,
+        "truncated_pages": 25
+      },
+      "v1": {
+        "as_of": "2025-02-28",
+        "coverage_actual": 0.549,
+        "index_pages": 7,
+        "max_page_tokens": 754,
+        "pages": 129,
+        "total_tokens": 21893,
+        "truncated_pages": 24
+      },
+      "v2": {
+        "as_of": "2025-06-30",
+        "coverage_actual": 0.757,
+        "index_pages": 7,
+        "max_page_tokens": 1014,
+        "pages": 178,
+        "total_tokens": 30814,
+        "truncated_pages": 30
+      },
+      "v3": {
+        "as_of": "2025-09-30",
+        "coverage_actual": 0.872,
+        "index_pages": 7,
+        "max_page_tokens": 1188,
+        "pages": 205,
+        "total_tokens": 35968,
+        "truncated_pages": 23
+      }
+    },
+    "questions": {
+      "eval": {
+        "heldout_questions": 48,
+        "n": 293,
+        "notes_ok_by_version": {
+          "v0": 28,
+          "v1": 56,
+          "v2": 116,
+          "v3": 124
+        },
+        "qtype_by_version": {
+          "v0": {
+            "aggregate": 53,
+            "gap": 129,
+            "lookup": 21,
+            "multihop": 60,
+            "stale": 30
+          },
+          "v1": {
+            "aggregate": 53,
+            "gap": 101,
+            "lookup": 36,
+            "multihop": 60,
+            "stale": 43
+          },
+          "v2": {
+            "aggregate": 53,
+            "gap": 57,
+            "lookup": 64,
+            "multihop": 60,
+            "stale": 59
+          },
+          "v3": {
+            "aggregate": 53,
+            "gap": 60,
+            "lookup": 60,
+            "multihop": 60,
+            "stale": 60
+          }
+        },
+        "qtype_v3": {
+          "aggregate": 53,
+          "gap": 60,
+          "lookup": 60,
+          "multihop": 60,
+          "stale": 60
+        }
+      },
+      "train": {
+        "heldout_questions": 0,
+        "n": 1714,
+        "notes_ok_by_version": {
+          "v0": 428,
+          "v1": 710,
+          "v2": 1070,
+          "v3": 1376
+        },
+        "qtype_by_version": {
+          "v0": {
+            "aggregate": 72,
+            "gap": 986,
+            "lookup": 404,
+            "multihop": 158,
+            "stale": 94
+          },
+          "v1": {
+            "aggregate": 72,
+            "gap": 708,
+            "lookup": 662,
+            "multihop": 158,
+            "stale": 114
+          },
+          "v2": {
+            "aggregate": 72,
+            "gap": 390,
+            "lookup": 974,
+            "multihop": 158,
+            "stale": 120
+          },
+          "v3": {
+            "aggregate": 72,
+            "gap": 188,
+            "lookup": 1222,
+            "multihop": 158,
+            "stale": 74
+          }
+        },
+        "qtype_v3": {
+          "aggregate": 72,
+          "gap": 188,
+          "lookup": 1222,
+          "multihop": 158,
+          "stale": 74
+        }
+      }
+    },
+    "seed": 0,
+    "unit": "tokens"
+  },
+  {
+    "company": "company_b",
+    "docs": {
+      "by_type": {
+        "chatter": 40,
+        "client_accounts": 22,
+        "contract_summary": 39,
+        "directory": 6,
+        "email": 145,
+        "hr_announcement": 125,
+        "kickoff_memo": 15,
+        "meeting_notes": 87,
+        "status_report": 198,
+        "team_roster": 28,
+        "year_end_review": 34
+      },
+      "max_tokens": 361,
+      "median_tokens": 245,
+      "min_tokens": 166,
+      "n": 739,
+      "total_tokens": 179790
+    },
+    "entities": {
+      "client": 22,
+      "contract": 36,
+      "office": 6,
+      "person": 113,
+      "project": 51,
+      "team": 15
+    },
+    "n_candidates": 1579,
+    "n_entities": 243,
+    "n_events": 422,
+    "n_heldout_entities": 0,
+    "notes": {
+      "v0": {
+        "as_of": "2024-09-30",
+        "coverage_actual": 0.353,
+        "index_pages": 7,
+        "max_page_tokens": 569,
+        "pages": 85,
+        "total_tokens": 13150,
+        "truncated_pages": 24
+      },
+      "v1": {
+        "as_of": "2025-02-28",
+        "coverage_actual": 0.552,
+        "index_pages": 7,
+        "max_page_tokens": 865,
+        "pages": 133,
+        "total_tokens": 21354,
+        "truncated_pages": 23
+      },
+      "v2": {
+        "as_of": "2025-06-30",
+        "coverage_actual": 0.751,
+        "index_pages": 7,
+        "max_page_tokens": 1132,
+        "pages": 181,
+        "total_tokens": 29732,
+        "truncated_pages": 24
+      },
+      "v3": {
+        "as_of": "2025-09-30",
+        "coverage_actual": 0.871,
+        "index_pages": 7,
+        "max_page_tokens": 1285,
+        "pages": 210,
+        "total_tokens": 34596,
+        "truncated_pages": 27
+      }
+    },
+    "questions": {
+      "eval": {
+        "heldout_questions": 0,
+        "n": 300,
+        "notes_ok_by_version": {
+          "v0": 31,
+          "v1": 70,
+          "v2": 110,
+          "v3": 125
+        },
+        "qtype_by_version": {
+          "v0": {
+            "aggregate": 60,
+            "gap": 130,
+            "lookup": 21,
+            "multihop": 60,
+            "stale": 29
+          },
+          "v1": {
+            "aggregate": 60,
+            "gap": 98,
+            "lookup": 38,
+            "multihop": 60,
+            "stale": 44
+          },
+          "v2": {
+            "aggregate": 60,
+            "gap": 65,
+            "lookup": 61,
+            "multihop": 60,
+            "stale": 54
+          },
+          "v3": {
+            "aggregate": 60,
+            "gap": 60,
+            "lookup": 60,
+            "multihop": 60,
+            "stale": 60
+          }
+        },
+        "qtype_v3": {
+          "aggregate": 60,
+          "gap": 60,
+          "lookup": 60,
+          "multihop": 60,
+          "stale": 60
+        }
+      },
+      "train": {
+        "heldout_questions": 0,
+        "n": 0,
+        "notes_ok_by_version": {
+          "v0": 0,
+          "v1": 0,
+          "v2": 0,
+          "v3": 0
+        },
+        "qtype_by_version": {
+          "v0": {
+            "aggregate": 0,
+            "gap": 0,
+            "lookup": 0,
+            "multihop": 0,
+            "stale": 0
+          },
+          "v1": {
+            "aggregate": 0,
+            "gap": 0,
+            "lookup": 0,
+            "multihop": 0,
+            "stale": 0
+          },
+          "v2": {
+            "aggregate": 0,
+            "gap": 0,
+            "lookup": 0,
+            "multihop": 0,
+            "stale": 0
+          },
+          "v3": {
+            "aggregate": 0,
+            "gap": 0,
+            "lookup": 0,
+            "multihop": 0,
+            "stale": 0
+          }
+        },
+        "qtype_v3": {
+          "aggregate": 0,
+          "gap": 0,
+          "lookup": 0,
+          "multihop": 0,
+          "stale": 0
+        }
+      }
+    },
+    "seed": 1,
+    "unit": "tokens"
+  }
+]
