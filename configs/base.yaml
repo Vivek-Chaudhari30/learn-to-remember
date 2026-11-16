@@ -14,8 +14,10 @@ workspace:              # filled in at M1
   seed_b: 1             # company B (transfer eval only)
   note_versions: [v0, v1, v2, v3]
 
-env:                    # filled in at M2 (spec §3.2)
-  max_tool_turns: 6
+env:                    # spec §3.2; measured budgets in docs/DECISIONS.md (M2)
+  max_tool_turns: 6     # model turns INCLUDING the final answer call
+  search_k_default: 5
+  search_k_max: 10
   max_gen_tokens_per_turn: 256
   max_tool_output_tokens: 400
   max_context_tokens: 4096

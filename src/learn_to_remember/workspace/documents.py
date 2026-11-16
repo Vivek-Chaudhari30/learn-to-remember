@@ -142,7 +142,8 @@ GENERAL = [
     "Comments on the draft process document are still welcome.",
     "A short survey about tooling will go out later this month.",
 ]
-MAX_PASSING = 2
+MEETING_MAX_ITEMS = 3
+PASSING_PROB = 0.3   # chance a doc gets ONE passing mention of other people/projects
 FILLER_KIND = {"status_report": "report", "email": "email", "meeting_notes": "meeting",
                "kickoff_memo": "report", "contract_summary": "report",
                "hr_announcement": "hr", "directory": "hr", "team_roster": "hr",
@@ -209,10 +210,13 @@ class _Writer:
         def n_words():
             return sum(len(x.split()) for x in header + lines)
 
-        n_passing = 0
+        # at most one passing mention per doc: more than that made every codename
+        # appear in ~20 unrelated docs and buried the real updates in search (M2)
+        passing_at = rng.randrange(1, 6) if rng.random() < PASSING_PROB else -1
+        i = 0
         while n_words() < target and pool:
-            if n_passing < MAX_PASSING and rng.random() < 0.2:
-                n_passing += 1
+            i += 1
+            if i == passing_at:
                 p, q = rng.sample(people, 2)
                 j = rng.choice(projects)
                 lines.append(rng.choice(PASSING).format(p=w.name(p), q=w.name(q),
@@ -256,15 +260,14 @@ class _Writer:
             doc = self.new_doc(d, "team_roster", f"Team roster: {w.name(t)}",
                                w.name(t).lower().replace(" ", "-"))
             body = [f"Team: {w.name(t)}", f"Lead: {w.name(w.value_at(t, 'lead', d))}", "",
-                    "Members:"]
+                    "Members (name | role | office | start date | manager):"]
             for p in w.team_members_at(t, d):
                 self.assert_fact(doc, p, "team", rng)
                 office = self.assert_fact(doc, p, "office", rng)
                 role = self.assert_fact(doc, p, "role", rng)
                 start = self.assert_fact(doc, p, "start_date", rng)
                 mgr = self.assert_fact(doc, p, "manager", rng)
-                body.append(f"- {w.name(p)}: {role}, {office} office, started {start}, "
-                            f"reports to {mgr}")
+                body.append(f"- {w.name(p)} | {role} | {office} | {start} | {mgr}")
                 doc.mentions.append(p)
             doc.mentions.append(t)
             self.finish(doc, body, rng)
@@ -341,7 +344,7 @@ class _Writer:
             old = w.name(ch["owner"][0])
             new = self.assert_fact(doc, p, "owner", rng)
             return rng.choice([
-                f"Ownership of {name} moves from {old} to {new}.",
+                f"The owner of {name} changes from {old} to {new}.",
                 f"{new} is taking over as owner of {name}, replacing {old}.",
             ])
         if ev.type == "status_change":
@@ -356,7 +359,7 @@ class _Writer:
             new = self.assert_fact(doc, p, "end_date", rng)
             return rng.choice([
                 f"The target end date for {name} has moved from {old} to {new}.",
-                f"{name} will now finish by {new} instead of {old}.",
+                f"{name} has a new target end date of {new} (previously {old}).",
             ])
         raise ValueError(ev.type)
 
@@ -388,10 +391,16 @@ class _Writer:
             else:
                 self.hr(ev, rng)
 
-        for (y, wk, office), evs in sorted(meetings.items(), key=lambda kv: (
-                kv[1][-1].date, kv[0][2])):
+        # at most MEETING_MAX_ITEMS decisions per meeting doc: in the Q4 wave a week
+        # bundled up to ~8 changes, and each project's mention got lost in search
+        chunks = []
+        for (y, wk, office), evs in meetings.items():
+            for c in range(0, len(evs), MEETING_MAX_ITEMS):
+                chunks.append(((y, wk, office, c), evs[c:c + MEETING_MAX_ITEMS]))
+        for (y, wk, office, c), evs in sorted(chunks, key=lambda kv: (
+                kv[1][-1].date, kv[0][2], kv[0][3])):
             d = max(e.date for e in evs)
-            rng = sub_rng(w.seed, "doc-meeting", y, wk, office)
+            rng = sub_rng(w.seed, "doc-meeting", y, wk, office, c)
             doc = self.new_doc(d, "meeting_notes",
                                f"Weekly portfolio sync: {w.name(office)} office",
                                w.name(office).lower())
@@ -552,12 +561,13 @@ class _Writer:
                                w.name(t).lower().replace(" ", "-"))
             members = w.team_members_at(t, d)
             body = [f"Team: {w.name(t)} ({self.assert_fact(doc, t, 'office', rng)} office)",
-                    f"Lead: {self.assert_fact(doc, t, 'lead', rng)}", "", "Members:"]
+                    f"Lead: {self.assert_fact(doc, t, 'lead', rng)}", "",
+                    "Members (name | role | manager):"]
             for p in members:
                 self.assert_fact(doc, p, "team", rng)
                 role = self.assert_fact(doc, p, "role", rng)
                 mgr = self.assert_fact(doc, p, "manager", rng)
-                body.append(f"- {w.name(p)}: {role}, reports to {mgr}")
+                body.append(f"- {w.name(p)} | {role} | {mgr}")
             doc.lists.append((t, "members", members))
             projs = w.team_projects_at(t, d)
             body += ["", "Projects run by the team:"]

@@ -1,17 +1,17 @@
-company_a: 746 docs, 1714 train, 293 eval
+company_a: 748 docs, 1714 train, 293 eval
 company_b: 739 docs, 0 train, 300 eval
 | | company_a | company_b |
 |---|---|---|
 | Seed | 0 | 1 |
 | Entities (office/team/person/project/client/contract) | 237 (6/15/107/51/22/36) | 243 (6/15/113/51/22/36) |
 | Change events | 423 | 422 |
-| Raw documents | 746 | 739 |
-| Raw tokens total | 183,960 | 179,790 |
-| Raw tokens per doc (min / median / max) | 164 / 246 / 385 | 166 / 245 / 361 |
-| Notes v0: pages (coverage, truncated, tokens) | 85 (0.36, 25, 13,625) | 85 (0.35, 24, 13,150) |
-| Notes v1: pages (coverage, truncated, tokens) | 129 (0.55, 24, 21,893) | 133 (0.55, 23, 21,354) |
-| Notes v2: pages (coverage, truncated, tokens) | 178 (0.76, 30, 30,814) | 181 (0.75, 24, 29,732) |
-| Notes v3: pages (coverage, truncated, tokens) | 205 (0.87, 23, 35,968) | 210 (0.87, 27, 34,596) |
+| Raw documents | 748 | 739 |
+| Raw tokens total | 181,205 | 177,414 |
+| Raw tokens per doc (min / median / max) | 162 / 241 / 375 | 162 / 239 / 338 |
+| Notes v0: pages (coverage, truncated, tokens) | 85 (0.36, 25, 13,626) | 85 (0.35, 24, 13,147) |
+| Notes v1: pages (coverage, truncated, tokens) | 129 (0.55, 24, 21,894) | 133 (0.55, 23, 21,355) |
+| Notes v2: pages (coverage, truncated, tokens) | 178 (0.76, 30, 30,816) | 181 (0.75, 24, 29,729) |
+| Notes v3: pages (coverage, truncated, tokens) | 205 (0.87, 23, 35,969) | 210 (0.87, 27, 34,595) |
 | Held-out entities | 22 | 0 |
 | Train questions | 1714 | 0 |
 | Eval questions (held-out-entity Qs) | 293 (48) | 300 (0) |

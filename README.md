@@ -4,7 +4,7 @@ Teaching a small open model (~1.5B, default `Qwen/Qwen2.5-1.5B-Instruct`) to **u
 
 Successor to [GRPO-Zero](https://github.com/Vivek-Chaudhari30/GRPO-Zero), which provides the GRPO engine. Inspired by Engram's [*Learning in a world of notes*](https://engram.com/blog/learning-in-a-world-of-notes).
 
-**Status:** M1 done (seeded workspace generator; eval sets in `data/eval/`). No model results yet. Everything reported here will be real measured numbers; see [`docs/RESULTS.md`](docs/RESULTS.md).
+**Status:** M2 done (tool env, reward, oracle at 98.7–100% on eval). No model results yet. Everything reported here will be real measured numbers; see [`docs/RESULTS.md`](docs/RESULTS.md).
 
 - Design spec: [`docs/PROJECT.md`](docs/PROJECT.md)
 - Decision log: [`docs/DECISIONS.md`](docs/DECISIONS.md)

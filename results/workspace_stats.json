@@ -10,16 +10,16 @@
         "email": 137,
         "hr_announcement": 124,
         "kickoff_memo": 15,
-        "meeting_notes": 86,
-        "status_report": 212,
+        "meeting_notes": 87,
+        "status_report": 213,
         "team_roster": 28,
         "year_end_review": 34
       },
-      "max_tokens": 385,
-      "median_tokens": 246.0,
-      "min_tokens": 164,
-      "n": 746,
-      "total_tokens": 183960
+      "max_tokens": 375,
+      "median_tokens": 241.0,
+      "min_tokens": 162,
+      "n": 748,
+      "total_tokens": 181205
     },
     "entities": {
       "client": 22,
@@ -40,7 +40,7 @@
         "index_pages": 7,
         "max_page_tokens": 508,
         "pages": 85,
-        "total_tokens": 13625,
+        "total_tokens": 13626,
         "truncated_pages": 25
       },
       "v1": {
@@ -49,7 +49,7 @@
         "index_pages": 7,
         "max_page_tokens": 754,
         "pages": 129,
-        "total_tokens": 21893,
+        "total_tokens": 21894,
         "truncated_pages": 24
       },
       "v2": {
@@ -58,7 +58,7 @@
         "index_pages": 7,
         "max_page_tokens": 1014,
         "pages": 178,
-        "total_tokens": 30814,
+        "total_tokens": 30816,
         "truncated_pages": 30
       },
       "v3": {
@@ -67,7 +67,7 @@
         "index_pages": 7,
         "max_page_tokens": 1188,
         "pages": 205,
-        "total_tokens": 35968,
+        "total_tokens": 35969,
         "truncated_pages": 23
       }
     },
@@ -186,11 +186,11 @@
         "team_roster": 28,
         "year_end_review": 34
       },
-      "max_tokens": 361,
-      "median_tokens": 245,
-      "min_tokens": 166,
+      "max_tokens": 338,
+      "median_tokens": 239,
+      "min_tokens": 162,
       "n": 739,
-      "total_tokens": 179790
+      "total_tokens": 177414
     },
     "entities": {
       "client": 22,
@@ -211,7 +211,7 @@
         "index_pages": 7,
         "max_page_tokens": 569,
         "pages": 85,
-        "total_tokens": 13150,
+        "total_tokens": 13147,
         "truncated_pages": 24
       },
       "v1": {
@@ -220,7 +220,7 @@
         "index_pages": 7,
         "max_page_tokens": 865,
         "pages": 133,
-        "total_tokens": 21354,
+        "total_tokens": 21355,
         "truncated_pages": 23
       },
       "v2": {
@@ -229,7 +229,7 @@
         "index_pages": 7,
         "max_page_tokens": 1132,
         "pages": 181,
-        "total_tokens": 29732,
+        "total_tokens": 29729,
         "truncated_pages": 24
       },
       "v3": {
@@ -238,7 +238,7 @@
         "index_pages": 7,
         "max_page_tokens": 1285,
         "pages": 210,
-        "total_tokens": 34596,
+        "total_tokens": 34595,
         "truncated_pages": 27
       }
     },

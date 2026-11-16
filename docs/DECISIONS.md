@@ -4,7 +4,27 @@ Dated log of non-obvious design decisions, with the reason for each. Deviations 
 
 ## System prompt
 
-Not written yet (M2/M3). The exact text will be recorded here once it is fixed, and it does not change after that.
+Fixed on 2026-11-15 (M2), in `src/learn_to_remember/env/prompt.py`, pinned by sha256 in `tests/test_prompt_and_oracle.py`. Changing it invalidates comparisons with earlier runs. The tool schemas (JSON) are rendered by the Qwen chat template's own `# Tools` block after this text.
+
+**Notes condition** (sha256 `b26e52d4…`):
+
+```
+You answer questions about a company using its internal workspace. Today is 2025-12-31.
+There are two sources. The raw files are the source of truth. The notes are a curated summary of them; they are faster to use but may be incomplete or out of date. Each note has an as_of date and lists its source files. When a note is missing, lacks the detail you need, or may have changed after its as_of date, check the raw files.
+Use the tools to look things up. Each turn, make exactly one tool call. You have at most 6 tool calls in total, and the final one must be answer. Reading costs: every token a tool returns counts against you, so prefer narrow searches and read only what you need.
+Give the final answer with the answer tool, as just the answer: a name, a number, a date or a short phrase, with no explanation.
+```
+
+**No-notes condition** (sha256 `d5d6ff2f…`):
+
+```
+You answer questions about a company using its internal workspace. Today is 2025-12-31.
+The raw files are the source of truth.
+Use the tools to look things up. Each turn, make exactly one tool call. You have at most 6 tool calls in total, and the final one must be answer. Reading costs: every token a tool returns counts against you, so prefer narrow searches and read only what you need.
+Give the final answer with the answer tool, as just the answer: a name, a number, a date or a short phrase, with no explanation.
+```
+
+The user turn is the question text alone. Measured with the Qwen2.5 template including the tool schemas: about 745 prompt tokens (notes) and about 498 (no notes), for a 14-word question.
 
 ---
 
@@ -22,7 +42,7 @@ Spec §3.1 defines v3 as coverage 1.0 and a fresh snapshot. That version has no 
 
 `grpo/core.py` adds `sequence_logprobs(model, input_ids, attention_mask)`, which returns `[B, L]` with position `t` holding `log π(x_t | x_<t)` (position 0 = 0, since it has no prediction). A multi-turn trajectory `[prompt | gen | tool | gen | …]` is then one row, and `loss_mask` (1 = model-generated token) picks the positions to train on. GRPO-Zero's `per_token_logprobs(prompt, completion)` becomes a thin wrapper, which is the special case where the mask covers the completion block. `grpo_loss` already worked on any mask of the log-prob shape. A test proves the two paths agree.
 
-## 2026-11-15: Spec budget inconsistencies to resolve at M2 (open)
+## 2026-11-15: Spec budget inconsistencies (resolved at M2, see the M2 entry)
 
 - K=6 × 400 tool tokens + 6 × 256 generated tokens + a system prompt with tool schemas (~700 tokens, to be measured) ≈ 4.6k tokens, over the 4096 context cap.
 - With at most 2400 tool tokens readable, B = 4000 never binds, so `min(1, ·)` is a no-op and the most a run can lose to cost is λ·0.6.
@@ -63,6 +83,21 @@ Spec §3.1 defines v3 as coverage 1.0 and a fresh snapshot. That version has no 
 - **Determinism:** all randomness goes through `sub_rng(seed, *keys)` (sha256-keyed), never `hash()`, and sets are never iterated unsorted. Tested byte-identical across processes with different `PYTHONHASHSEED`.
 - **Note page sizes vs. the 400-token tool cap:** the index pages for people/projects/contracts exceed 400 tokens by design (a broad read gets truncated, as in the blog). One office page (Seoul, 448 tokens) also exceeds it. List headers carry counts (`people (30):`), so aggregates stay readable even when truncated.
 - **Open (M4): the training mix is lookup-heavy.** At v3: 1222 lookup / 158 multihop / 72 aggregate / 188 gap / 74 stale (the 74 stale are ~37 facts × 2 paraphrases). To be decided at M4: stratified sampling by qtype, or training on a mix of versions.
+
+## 2026-11-15 (M2): Tool environment, reward, oracle
+
+- **Search is hand-written Okapi BM25** (k1 = 1.5, b = 0.75, small stopword list, ties broken by document order). Ids like `C-1589` are single tokens; before that, "c" matched every contract doc. **Bigrams were tried and rejected:** measured top-10 recall of the target doc was 268/300 vs 283/300 for unigrams. Bigrams make long list docs longer, and the length penalty then buries them. Note search weights the title (it is indexed three times), because an office page lost to dozens of people/team pages that merely contain `office: <city>`.
+- **`search_files(query, k=5, since=None)` [deviation].** The spec's tool table has no `since`. BM25 cannot express "newer", and the newest update to a fact (a meeting note, an email) was often outranked by older status reports about the same project. Those stale questions were unsolvable with natural queries. With `since`, top-10 recall of the target rose from 283/300 to 293/300. It's also the natural tool for "did this change after the note's as_of?", the behavior RQ5 measures. It exists in both conditions (the harness stays identical). It can be removed if you prefer the spec as written. Measured on the final env with the `since` fallback disabled, the oracle scores 91.7–93.9% (A: v0 92.2%, v3 93.9%, no notes 91.8%; B: 92.3%, 93.0%, 91.7%), vs 98.7–100% with it.
+- **Generator changes forced by the oracle** (they change M1's data; eval sets and stats were regenerated, and all M1 invariant tests still pass):
+  - at most one passing mention per doc, in ~30% of docs (before: ~20 per codename, burying real updates);
+  - at most 3 decisions per weekly meeting note (Q4 weeks had bundled up to ~8);
+  - roster column headers (`name | role | office | start date | manager`);
+  - every template variant names its attribute (dropped "Ownership of X moves…" and "X will now finish by…", which never said "owner" / "end date").
+- **Turn rules:** K = 6 model turns *including* `answer`. A non-answer call on turn 6 is not executed and costs nothing; its output would never reach the model. A malformed call or tool error returns an error observation (which is counted in tokens) and uses the turn. Only the first `<tool_call>` per turn runs.
+- **Budgets, measured:** prompt ≈ 745 tokens (notes) / 498 (no notes); 18 template tokens per tool turn; tool output ≤ 400. Worst case 745 + 5 × 418 + 6 × 256 ≈ 4371 > 4096. The 4096 cap is kept and enforced: an episode ends with `context_limit` when the next turn cannot fit. Real turns generate far fewer than 256 tokens (to be measured at M3).
+- **Cost budget B = 4000 kept as in the spec.** At most 5 × 400 = 2000 tool tokens can be read, so `min(1, ·)` never applies: the cost is linear, λ · tokens/4000, at most λ/2. Kept on purpose so λ values mean what the spec says; revisit at the λ sweep if the penalty is too weak.
+- **Normalizer:** for names, the maximal catalog matches in the answer must be exactly {gold}. Listing several names, a first name alone, "Senior X" for "X", or "Night Heron" for "Heron" all fail. For money/date/count, exactly one distinct value. A bare integer ≥ 1000 counts as money when no `$`/`USD`/`M` marker is present. Status synonyms are mapped. Numeric d/m/y dates are rejected as ambiguous.
+- **The oracle is privileged about what, not how** (see `oracle.py` and RESULTS.md). It uses natural queries with k = 10, plus two fallbacks: the same query with `since` = the fact's last change, then `"<name> team roster"` for people and teams. Contracts are searched by id alone.
 
 ## 2026-11-15: Python environment
 

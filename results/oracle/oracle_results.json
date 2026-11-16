@@ -1,0 +1,278 @@
+[
+  {
+    "accuracy": 0.9932,
+    "by_qtype": {
+      "aggregate": "53/53",
+      "gap": "129/129",
+      "lookup": "21/21",
+      "multihop": "58/60",
+      "stale": "30/30"
+    },
+    "company": "company_a",
+    "condition": "v0",
+    "correct": 291,
+    "failed_ids": [
+      "company_a-eval-0073",
+      "company_a-eval-0087"
+    ],
+    "failures": {
+      "out_of_turns": 2
+    },
+    "fallbacks": {
+      "roster": 4,
+      "since": 28
+    },
+    "max_turns_used": 6,
+    "mean_tokens_read": 747.3,
+    "mean_turns": 3.51,
+    "n": 293
+  },
+  {
+    "accuracy": 0.9966,
+    "by_qtype": {
+      "aggregate": "53/53",
+      "gap": "101/101",
+      "lookup": "36/36",
+      "multihop": "59/60",
+      "stale": "43/43"
+    },
+    "company": "company_a",
+    "condition": "v1",
+    "correct": 292,
+    "failed_ids": [
+      "company_a-eval-0087"
+    ],
+    "failures": {
+      "out_of_turns": 1
+    },
+    "fallbacks": {
+      "roster": 3,
+      "since": 27
+    },
+    "max_turns_used": 6,
+    "mean_tokens_read": 725.1,
+    "mean_turns": 3.51,
+    "n": 293
+  },
+  {
+    "accuracy": 1.0,
+    "by_qtype": {
+      "aggregate": "53/53",
+      "gap": "57/57",
+      "lookup": "64/64",
+      "multihop": "60/60",
+      "stale": "59/59"
+    },
+    "company": "company_a",
+    "condition": "v2",
+    "correct": 293,
+    "failed_ids": [],
+    "failures": {},
+    "fallbacks": {
+      "roster": 0,
+      "since": 19
+    },
+    "max_turns_used": 6,
+    "mean_tokens_read": 679.0,
+    "mean_turns": 3.47,
+    "n": 293
+  },
+  {
+    "accuracy": 1.0,
+    "by_qtype": {
+      "aggregate": "53/53",
+      "gap": "60/60",
+      "lookup": "60/60",
+      "multihop": "60/60",
+      "stale": "60/60"
+    },
+    "company": "company_a",
+    "condition": "v3",
+    "correct": 293,
+    "failed_ids": [],
+    "failures": {},
+    "fallbacks": {
+      "roster": 0,
+      "since": 19
+    },
+    "max_turns_used": 6,
+    "mean_tokens_read": 682.0,
+    "mean_turns": 3.47,
+    "n": 293
+  },
+  {
+    "accuracy": 0.9932,
+    "by_qtype": {
+      "aggregate": "53/53",
+      "gap": "60/60",
+      "lookup": "60/60",
+      "multihop": "58/60",
+      "stale": "60/60"
+    },
+    "company": "company_a",
+    "condition": "no_notes",
+    "correct": 291,
+    "failed_ids": [
+      "company_a-eval-0073",
+      "company_a-eval-0087"
+    ],
+    "failures": {
+      "out_of_turns": 2
+    },
+    "fallbacks": {
+      "roster": 5,
+      "since": 30
+    },
+    "max_turns_used": 6,
+    "mean_tokens_read": 783.9,
+    "mean_turns": 3.52,
+    "n": 293
+  },
+  {
+    "accuracy": 0.9933,
+    "by_qtype": {
+      "aggregate": "60/60",
+      "gap": "129/130",
+      "lookup": "21/21",
+      "multihop": "59/60",
+      "stale": "29/29"
+    },
+    "company": "company_b",
+    "condition": "v0",
+    "correct": 298,
+    "failed_ids": [
+      "company_b-eval-0076",
+      "company_b-eval-0276"
+    ],
+    "failures": {
+      "file_not_retrieved": 1,
+      "out_of_turns": 1
+    },
+    "fallbacks": {
+      "roster": 4,
+      "since": 28
+    },
+    "max_turns_used": 6,
+    "mean_tokens_read": 740.2,
+    "mean_turns": 3.5,
+    "n": 300
+  },
+  {
+    "accuracy": 0.9933,
+    "by_qtype": {
+      "aggregate": "60/60",
+      "gap": "97/98",
+      "lookup": "38/38",
+      "multihop": "59/60",
+      "stale": "44/44"
+    },
+    "company": "company_b",
+    "condition": "v1",
+    "correct": 298,
+    "failed_ids": [
+      "company_b-eval-0076",
+      "company_b-eval-0276"
+    ],
+    "failures": {
+      "file_not_retrieved": 1,
+      "out_of_turns": 1
+    },
+    "fallbacks": {
+      "roster": 4,
+      "since": 26
+    },
+    "max_turns_used": 6,
+    "mean_tokens_read": 717.0,
+    "mean_turns": 3.49,
+    "n": 300
+  },
+  {
+    "accuracy": 0.9933,
+    "by_qtype": {
+      "aggregate": "60/60",
+      "gap": "64/65",
+      "lookup": "61/61",
+      "multihop": "59/60",
+      "stale": "54/54"
+    },
+    "company": "company_b",
+    "condition": "v2",
+    "correct": 298,
+    "failed_ids": [
+      "company_b-eval-0076",
+      "company_b-eval-0276"
+    ],
+    "failures": {
+      "file_not_retrieved": 1,
+      "out_of_turns": 1
+    },
+    "fallbacks": {
+      "roster": 4,
+      "since": 25
+    },
+    "max_turns_used": 6,
+    "mean_tokens_read": 701.4,
+    "mean_turns": 3.49,
+    "n": 300
+  },
+  {
+    "accuracy": 0.9933,
+    "by_qtype": {
+      "aggregate": "60/60",
+      "gap": "60/60",
+      "lookup": "60/60",
+      "multihop": "59/60",
+      "stale": "59/60"
+    },
+    "company": "company_b",
+    "condition": "v3",
+    "correct": 298,
+    "failed_ids": [
+      "company_b-eval-0076",
+      "company_b-eval-0276"
+    ],
+    "failures": {
+      "file_not_retrieved": 1,
+      "out_of_turns": 1
+    },
+    "fallbacks": {
+      "roster": 4,
+      "since": 25
+    },
+    "max_turns_used": 6,
+    "mean_tokens_read": 692.5,
+    "mean_turns": 3.49,
+    "n": 300
+  },
+  {
+    "accuracy": 0.9867,
+    "by_qtype": {
+      "aggregate": "60/60",
+      "gap": "60/60",
+      "lookup": "59/60",
+      "multihop": "58/60",
+      "stale": "59/60"
+    },
+    "company": "company_b",
+    "condition": "no_notes",
+    "correct": 296,
+    "failed_ids": [
+      "company_b-eval-0012",
+      "company_b-eval-0067",
+      "company_b-eval-0076",
+      "company_b-eval-0276"
+    ],
+    "failures": {
+      "file_not_retrieved": 3,
+      "out_of_turns": 1
+    },
+    "fallbacks": {
+      "roster": 5,
+      "since": 31
+    },
+    "max_turns_used": 6,
+    "mean_tokens_read": 780.0,
+    "mean_turns": 3.5,
+    "n": 300
+  }
+]
