@@ -1,0 +1,7 @@
+# Experiment 2 (main run, spec §4): with notes (v3), lambda = 0.2, 200 steps.
+# Set model.id to the model chosen by the M3 probe (docs/DECISIONS.md).
+extends: base.yaml
+train:
+  condition: v3
+reward:
+  cost_lambda: 0.2

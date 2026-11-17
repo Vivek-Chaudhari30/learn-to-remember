@@ -1,0 +1,12 @@
+# M4 sanity check (spec §7): 8 fixed training questions (stratified over qtypes),
+# reused every step. Done when the batch reward climbs to ~1 (1.1 max with the
+# format bonus, minus the cost term). A higher lr than the main run, because the
+# point is to show the loop CAN fit, not to be a result.
+extends: base.yaml
+train:
+  condition: v3
+  overfit_n: 8
+  prompts_per_step: 8
+  steps: 60
+  lr: 5.0e-5
+  checkpoint_every: 0

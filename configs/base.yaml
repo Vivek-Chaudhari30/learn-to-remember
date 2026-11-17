@@ -34,6 +34,10 @@ rollout:
   top_p: 1.0
 
 train:
+  condition: v3         # notes version v0..v3, or no_notes (spec §4: main run = v3, lambda 0.2)
+  question_mix: stratified   # stratified (equal per v3 qtype) | natural; see DECISIONS.md (M4)
+  overfit_n: 0          # >0: train on this many fixed questions every step (sanity check)
+  gen_batch: 32         # episodes per generate() call during rollouts
   lr: 1.0e-5            # GRPO-Zero: 1e-6 showed no gain in 70 steps; 1e-5 gave +4.4 pts over 200 steps
   kl_coef: 0.04
   clip_eps: 0.2

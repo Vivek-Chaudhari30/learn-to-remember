@@ -120,9 +120,20 @@ def _chunk_logprobs(head, hidden: torch.Tensor, targets: torch.Tensor) -> torch.
     return selected - torch.logsumexp(logits, dim=-1)
 
 
+def _chunk_logprobs_entropy(head, hidden, targets):
+    """As _chunk_logprobs, plus the (detached) entropy of each position's
+    distribution, for monitoring collapse. Returns [N, 2]: (log-prob, entropy)."""
+    logits = head(hidden).float()
+    lse = torch.logsumexp(logits, dim=-1)
+    lp = logits.gather(-1, targets.unsqueeze(-1)).squeeze(-1) - lse
+    with torch.no_grad():
+        ent = lse - (torch.softmax(logits, dim=-1) * logits).sum(-1)
+    return torch.stack([lp, ent.detach()], dim=-1)
+
+
 def sequence_logprobs(model, input_ids: torch.Tensor, attention_mask: torch.Tensor, *,
                       logit_mask: torch.Tensor | None = None,
-                      chunk_size: int = 1024) -> torch.Tensor:
+                      chunk_size: int = 1024, return_entropy: bool = False):
     """Teacher-forced log-prob of every token in each row. Returns [B, L].
 
     out[b, t] = log pi(input_ids[b, t] | input_ids[b, :t]) for t >= 1, and
@@ -139,6 +150,9 @@ def sequence_logprobs(model, input_ids: torch.Tensor, attention_mask: torch.Tens
     are the prompt and tool results, so this skips most of the head's work.
     Models without a separate backbone/head fall back to the plain full-logits
     path, and `logit_mask` then only zeroes entries.
+
+    `return_entropy=True` returns (log-probs, entropies), both [B, L]; the
+    entropy is detached (a monitoring signal, not part of the loss).
     """
     pos = position_ids_from_mask(attention_mask)
     parts = _backbone_and_head(model)
@@ -148,8 +162,15 @@ def sequence_logprobs(model, input_ids: torch.Tensor, attention_mask: torch.Tens
         logits = logits[:, :-1, :].float()           # position t predicts token t+1
         targets = input_ids[:, 1:]
         selected = logits.gather(-1, targets.unsqueeze(-1)).squeeze(-1)
-        out = F.pad(selected - torch.logsumexp(logits, dim=-1), (1, 0), value=0.0)
-        return out if logit_mask is None else torch.where(logit_mask.bool(), out, 0.0)
+        lse = torch.logsumexp(logits, dim=-1)
+        out = F.pad(selected - lse, (1, 0), value=0.0)
+        out = out if logit_mask is None else torch.where(logit_mask.bool(), out, 0.0)
+        if not return_entropy:
+            return out
+        with torch.no_grad():
+            ent = F.pad(lse - (torch.softmax(logits, -1) * logits).sum(-1), (1, 0), value=0.0)
+            ent = ent if logit_mask is None else torch.where(logit_mask.bool(), ent, 0.0)
+        return out, ent
 
     backbone, head = parts
     hidden = backbone(input_ids=input_ids, attention_mask=attention_mask,
@@ -164,18 +185,24 @@ def sequence_logprobs(model, input_ids: torch.Tensor, attention_mask: torch.Tens
     h = hidden[b_idx, t_idx - 1]                       # [N, H], hidden at t-1 predicts t
     tgt = input_ids[b_idx, t_idx]                      # [N]
     use_ckpt = torch.is_grad_enabled() and h.requires_grad
+    fn = _chunk_logprobs_entropy if return_entropy else _chunk_logprobs
     vals = []
     for s in range(0, h.shape[0], chunk_size):
         hs, ts = h[s:s + chunk_size], tgt[s:s + chunk_size]
         if use_ckpt:
             from torch.utils.checkpoint import checkpoint
-            vals.append(checkpoint(_chunk_logprobs, head, hs, ts, use_reentrant=False))
+            vals.append(checkpoint(fn, head, hs, ts, use_reentrant=False))
         else:
-            vals.append(_chunk_logprobs(head, hs, ts))
+            vals.append(fn(head, hs, ts))
     out = torch.zeros(B, L, dtype=torch.float32, device=input_ids.device)
+    if not return_entropy:
+        return out.index_put((b_idx, t_idx), torch.cat(vals)) if vals else out
+    ent = torch.zeros(B, L, dtype=torch.float32, device=input_ids.device)
     if vals:
-        out = out.index_put((b_idx, t_idx), torch.cat(vals))
-    return out
+        v = torch.cat(vals)
+        out = out.index_put((b_idx, t_idx), v[:, 0])
+        ent = ent.index_put((b_idx, t_idx), v[:, 1].detach())
+    return out, ent
 
 
 def per_token_logprobs(model, prompt_ids, prompt_mask, completion_ids, completion_mask):

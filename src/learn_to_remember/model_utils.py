@@ -41,9 +41,22 @@ _DTYPE_MAP = {
 # --------------------------------------------------------------------------- #
 # Config, seeding, device
 # --------------------------------------------------------------------------- #
+def _deep_merge(base: dict, over: dict) -> dict:
+    out = dict(base)
+    for k, v in over.items():
+        out[k] = _deep_merge(out[k], v) if isinstance(v, dict) and isinstance(out.get(k), dict) else v
+    return out
+
+
 def load_config(path: str) -> dict:
+    """Load a YAML config. `extends: other.yaml` (relative to this file) is
+    loaded first and deep-merged under this file's values."""
     with open(path) as f:
-        return yaml.safe_load(f)
+        cfg = yaml.safe_load(f) or {}
+    parent = cfg.pop("extends", None)
+    if parent:
+        cfg = _deep_merge(load_config(os.path.join(os.path.dirname(path), parent)), cfg)
+    return cfg
 
 
 def set_seed(seed: int) -> None:

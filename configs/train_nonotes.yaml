@@ -1,0 +1,6 @@
+# Experiment 3 (M5): training without notes, lambda = 0.2. Completes the 2x2 for RQ1.
+extends: base.yaml
+train:
+  condition: no_notes
+reward:
+  cost_lambda: 0.2

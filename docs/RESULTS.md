@@ -83,6 +83,12 @@ not run (GPU). Script `scripts/run_eval.py`.
 
 not run (GPU). Script `scripts/logprob_memory.py`.
 
-## Training runs (M4–M5)
+## Training (M4)
+
+- Seconds per step on the main config: not run (GPU). `notebooks/kaggle_m4.ipynb` step 1, or `scripts/run_m4.sh`.
+- Overfit sanity check (8 questions): not run (GPU).
+- Main run (experiment 2, notes v3, λ = 0.2): not run (GPU).
+
+## Training runs (M5)
 
 not run
