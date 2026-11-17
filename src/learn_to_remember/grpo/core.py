@@ -93,8 +93,36 @@ def compute_advantages(rewards: torch.Tensor, group_ids: torch.Tensor,
 # --------------------------------------------------------------------------- #
 # Log-probs
 # --------------------------------------------------------------------------- #
-def sequence_logprobs(model, input_ids: torch.Tensor,
-                      attention_mask: torch.Tensor) -> torch.Tensor:
+def _backbone_and_head(model):
+    """(decoder backbone, lm_head) of an HF causal LM, through a PEFT wrapper.
+    None when the model doesn't expose them (e.g. the fake LMs in the tests).
+
+    PEFT injects LoRA into the backbone's Linear layers in place, so calling the
+    backbone directly still applies the adapter, and `disable_adapter()` still
+    turns it off.
+    """
+    base = model.get_base_model() if hasattr(model, "get_base_model") else model
+    if not (hasattr(base, "get_output_embeddings") and hasattr(base, "get_decoder")):
+        return None
+    try:
+        head, backbone = base.get_output_embeddings(), base.get_decoder()
+    except (AttributeError, NotImplementedError):
+        return None
+    if head is None or backbone is None or backbone is base:
+        return None
+    return backbone, head
+
+
+def _chunk_logprobs(head, hidden: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+    """log softmax(head(hidden))[target] for a slice of positions. [N, H] -> [N]."""
+    logits = head(hidden).float()
+    selected = logits.gather(-1, targets.unsqueeze(-1)).squeeze(-1)
+    return selected - torch.logsumexp(logits, dim=-1)
+
+
+def sequence_logprobs(model, input_ids: torch.Tensor, attention_mask: torch.Tensor, *,
+                      logit_mask: torch.Tensor | None = None,
+                      chunk_size: int = 1024) -> torch.Tensor:
     """Teacher-forced log-prob of every token in each row. Returns [B, L].
 
     out[b, t] = log pi(input_ids[b, t] | input_ids[b, :t]) for t >= 1, and
@@ -102,17 +130,52 @@ def sequence_logprobs(model, input_ids: torch.Tensor,
     aligned with `input_ids`, so a `loss_mask` of the same [B, L] shape selects
     the tokens to train on directly.
 
-    Uses `selected - logsumexp` instead of a full log_softmax, so no second
-    [B, L, V] tensor is materialized. (The logits themselves still are; at long
-    contexts this becomes a chunked computation in M3, see DECISIONS.md.)
+    Memory (M3, see DECISIONS.md): the full [B, L, V] logits are never built.
+    The backbone runs once for hidden states, then lm_head + logsumexp run over
+    slices of `chunk_size` positions. Each slice is checkpointed when grads are
+    on, so the backward recomputes it instead of storing its logits. With
+    `logit_mask` ([B, L], 1 = needed, e.g. the loss mask), only those positions
+    are computed at all and every other entry is 0. In a trajectory most tokens
+    are the prompt and tool results, so this skips most of the head's work.
+    Models without a separate backbone/head fall back to the plain full-logits
+    path, and `logit_mask` then only zeroes entries.
     """
-    logits = model(input_ids=input_ids, attention_mask=attention_mask,
-                   position_ids=position_ids_from_mask(attention_mask)).logits
-    logits = logits[:, :-1, :].float()              # position t predicts token t+1
-    targets = input_ids[:, 1:]                      # [B, L-1]
-    selected = logits.gather(-1, targets.unsqueeze(-1)).squeeze(-1)
-    token_logprobs = selected - torch.logsumexp(logits, dim=-1)
-    return F.pad(token_logprobs, (1, 0), value=0.0)  # [B, L], aligned to input_ids
+    pos = position_ids_from_mask(attention_mask)
+    parts = _backbone_and_head(model)
+    if parts is None:
+        logits = model(input_ids=input_ids, attention_mask=attention_mask,
+                       position_ids=pos).logits
+        logits = logits[:, :-1, :].float()           # position t predicts token t+1
+        targets = input_ids[:, 1:]
+        selected = logits.gather(-1, targets.unsqueeze(-1)).squeeze(-1)
+        out = F.pad(selected - torch.logsumexp(logits, dim=-1), (1, 0), value=0.0)
+        return out if logit_mask is None else torch.where(logit_mask.bool(), out, 0.0)
+
+    backbone, head = parts
+    hidden = backbone(input_ids=input_ids, attention_mask=attention_mask,
+                      position_ids=pos).last_hidden_state          # [B, L, H]
+    B, L = input_ids.shape
+    need = torch.ones(B, L, dtype=torch.bool, device=input_ids.device)
+    if logit_mask is not None:
+        need = logit_mask.bool()
+    need = need.clone()
+    need[:, 0] = False                                 # nothing predicts position 0
+    b_idx, t_idx = need.nonzero(as_tuple=True)         # positions whose token we score
+    h = hidden[b_idx, t_idx - 1]                       # [N, H], hidden at t-1 predicts t
+    tgt = input_ids[b_idx, t_idx]                      # [N]
+    use_ckpt = torch.is_grad_enabled() and h.requires_grad
+    vals = []
+    for s in range(0, h.shape[0], chunk_size):
+        hs, ts = h[s:s + chunk_size], tgt[s:s + chunk_size]
+        if use_ckpt:
+            from torch.utils.checkpoint import checkpoint
+            vals.append(checkpoint(_chunk_logprobs, head, hs, ts, use_reentrant=False))
+        else:
+            vals.append(_chunk_logprobs(head, hs, ts))
+    out = torch.zeros(B, L, dtype=torch.float32, device=input_ids.device)
+    if vals:
+        out = out.index_put((b_idx, t_idx), torch.cat(vals))
+    return out
 
 
 def per_token_logprobs(model, prompt_ids, prompt_mask, completion_ids, completion_mask):
@@ -128,7 +191,9 @@ def per_token_logprobs(model, prompt_ids, prompt_mask, completion_ids, completio
 
 @torch.no_grad()
 def batched_logprobs(model, input_ids: torch.Tensor, attention_mask: torch.Tensor, *,
-                     micro_batch: int, disable_adapter: bool = False) -> torch.Tensor:
+                     micro_batch: int, disable_adapter: bool = False,
+                     logit_mask: torch.Tensor | None = None,
+                     chunk_size: int = 1024) -> torch.Tensor:
     """`sequence_logprobs` over many rows, chunked to cap memory. Returns [B, L].
 
     `disable_adapter=True` turns the LoRA policy back into the frozen base model,
@@ -139,7 +204,9 @@ def batched_logprobs(model, input_ids: torch.Tensor, attention_mask: torch.Tenso
     with ctx:
         for s in range(0, input_ids.shape[0], micro_batch):
             sl = slice(s, s + micro_batch)
-            chunks.append(sequence_logprobs(model, input_ids[sl], attention_mask[sl]))
+            chunks.append(sequence_logprobs(
+                model, input_ids[sl], attention_mask[sl], chunk_size=chunk_size,
+                logit_mask=None if logit_mask is None else logit_mask[sl]))
     return torch.cat(chunks, dim=0)
 
 

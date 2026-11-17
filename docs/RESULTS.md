@@ -73,11 +73,15 @@ These are left in rather than tuned away. Tuning the env further against the ora
 
 ## Model probe (M3)
 
-not run
+not run (GPU). Notebook: `notebooks/kaggle_m3.ipynb`, script `scripts/probe_models.py`; subset `data/eval/probe_company_a.json`.
 
 ## Baselines (M3)
 
-not run
+not run (GPU). Script `scripts/run_eval.py`.
+
+## Log-prob memory at long context (M3)
+
+not run (GPU). Script `scripts/logprob_memory.py`.
 
 ## Training runs (M4–M5)
 

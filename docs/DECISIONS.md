@@ -49,7 +49,7 @@ Spec §3.1 defines v3 as coverage 1.0 and a fresh snapshot. That version has no 
 - The spec doesn't say whether the `answer` call counts toward K.
 - These will be resolved with measured token counts at M2 and logged here.
 
-## 2026-11-15: Logit memory at long context (open, M3)
+## 2026-11-15: Logit memory at long context (resolved in code at M3, see the 2026-11-16 entry)
 
 `sequence_logprobs` materializes `[B, L, V]` logits as GRPO-Zero did. At L = 4096 with Qwen's V ≈ 152k that is ~2.5 GB per row in fp32, which is too much for a T4. At M3 this becomes a chunked computation over hidden states (lm_head plus logsumexp in slices, only at masked positions). The M0 API is kept so that change stays internal.
 
@@ -98,6 +98,24 @@ Spec §3.1 defines v3 as coverage 1.0 and a fresh snapshot. That version has no 
 - **Cost budget B = 4000 kept as in the spec.** At most 5 × 400 = 2000 tool tokens can be read, so `min(1, ·)` never applies: the cost is linear, λ · tokens/4000, at most λ/2. Kept on purpose so λ values mean what the spec says; revisit at the λ sweep if the penalty is too weak.
 - **Normalizer:** for names, the maximal catalog matches in the answer must be exactly {gold}. Listing several names, a first name alone, "Senior X" for "X", or "Night Heron" for "Heron" all fail. For money/date/count, exactly one distinct value. A bare integer ≥ 1000 counts as money when no `$`/`USD`/`M` marker is present. Status synonyms are mapped. Numeric d/m/y dates are rejected as ambiguous.
 - **The oracle is privileged about what, not how** (see `oracle.py` and RESULTS.md). It uses natural queries with k = 10, plus two fallbacks: the same query with `since` = the fact's last change, then `"<name> team roster"` for people and teams. Contracts are searched by id alone.
+
+## 2026-11-16 (M3): Multi-turn rollout, log-probs, eval harness, probe
+
+- **Exact-id trajectories** (`grpo/rollout.py`). A trajectory is built by appending: the prompt ids, then each turn's sampled ids exactly as `generate` returned them (through the stop token), then each tool result tokenized as a segment by itself. The segment's framing strings are cut out of the tokenizer's own chat template with sentinels, so nothing Qwen-specific is hard-coded. For Qwen2.5 a segment is `"\n<|im_start|>user\n<tool_response>\n" + obs + "\n</tool_response><|im_end|>\n<|im_start|>assistant\n"`. It starts right after `<|im_end|>`, a special token and so a hard token boundary, which makes tokenizing it alone exact.
+  - Tests prove that for Qwen2.5 with canonically tokenized turns this equals rendering and tokenizing the whole conversation. They also prove two cases where re-rendering would be **wrong**: a non-canonical sampled split (re-tokenizing merges it), and **Qwen3**, whose template drops the empty `<think></think>` block from earlier assistant turns even though the model was prompted with one before every turn. On a real (tiny, random) model, teacher-forced log-probs of the trajectory equal the sampling-time log-probs token for token (atol 1e-4).
+  - `loss_mask` = 1 on sampled ids only, including the sampled stop token. A turn cut at the 256-token cap, or one that stopped on `<|endoftext|>` instead of `<|im_end|>`, gets an `<|im_end|>` appended with mask 0. The model did not sample it, so it is not trained on, but the next segment is framed correctly.
+  - The context check runs on exact ids, with the same rule as the M2 text runner: a turn starts only if prompt-so-far + 256 fits in 4096; otherwise the episode ends with `context_limit`.
+- **Generation parameters are all pinned [bug avoided].** transformers 5 fills every generation parameter left unset from the model's own `generation_config`, and Qwen2.5-Instruct ships `repetition_penalty 1.1, top_k 20, top_p 0.8, temperature 0.7`. A plain `generate(do_sample=False)` would therefore apply a repetition penalty to "greedy" eval, and RL sampling would draw from a truncated, re-weighted distribution that is not the policy GRPO scores. `HFGenerator` sets `repetition_penalty 1.0, top_k 0, top_p 1.0`, temperature 1.0 for sampling (spec), and greedy for eval. It also overwrites the model's generation_config. A test plants a hostile generation_config and checks that greedy output equals a plain argmax loop.
+- **Chunked log-probs** (`grpo/core.py`). `sequence_logprobs` runs the backbone once, then lm_head + logsumexp over slices of 1024 positions, each checkpointed when grads are on. It never builds `[B, L, V]` logits. With `logit_mask` (the loss mask) it computes only those positions; in a trajectory most tokens are prompt and tool output. Models without a separate head (the fake LMs in the M0 tests) use the old full path. Tests: equal to the full-logits computation for chunk sizes 1/7/64/4096, equal LoRA gradients through layer gradient checkpointing, and the reference policy via `disable_adapter` still matches the base model. The measured T4 memory is pending (`scripts/logprob_memory.py`, in the Kaggle notebook).
+- **Eval metric definitions** (`eval.py`):
+  - `fallback_rate`: gap/stale questions that used a file tool (`search_files` or `read_file`).
+  - `false_alarm_rate`: lookup questions (notes correct and fresh) that used a file tool, notes conditions only. The spec says "raw-file reads"; searching the files counts too, so the two rates are defined the same way.
+  - `valid_call_rate`: turns whose call parsed and named a real tool with valid arguments / all model turns, pooled over questions. This is the "valid tool calls" of the §3.5 probe rule.
+  - CIs: percentile bootstrap over questions, 2000 resamples, seed 0.
+  - qtype labels follow the condition's notes version; `no_notes` uses v3 labels, as the oracle does.
+  - Seconds per question = the rollout batch's wall time / its size.
+- **Probe subset:** 10 company-A eval questions per v3 qtype, drawn with `random.Random(0)` over sorted ids, committed as `data/eval/probe_company_a.json`. The spec chooses the model on eval questions, so the choice touches 50 of the 293 company-A eval questions. This is accepted and logged; reported company-A baselines and trained numbers use the full set. Tie-break: if both candidates pass, keep the spec default (Qwen2.5-1.5B-Instruct). If neither passes, stop and decide with the user (the risk table's fallback is an SFT warm start on oracle trajectories, which would be a reported deviation).
+- **Eval is greedy** and runs both companies in parallel on Kaggle's two T4s (`notebooks/kaggle_m3.ipynb`), in fp16 (the T4 has no native bf16).
 
 ## 2026-11-15: Python environment
 
