@@ -1,0 +1,8 @@
+# Experiment 5 (drift, RQ3): train on the oldest, sparsest notes (v0), lambda 0.2.
+# The sampler stratifies by the v0 qtype labels (most v0 questions are gap).
+# Evaluated on v0, v1, v2, v3 and compared with experiment 2 (trained on v3).
+extends: base.yaml
+train:
+  condition: v0
+reward:
+  cost_lambda: 0.2

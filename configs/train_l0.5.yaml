@@ -1,0 +1,7 @@
+# Experiment 4 (lambda sweep, RQ2): notes v3, strong cost penalty. Watch the
+# zero-lookup rate (reward hacking: answering without reading).
+extends: base.yaml
+train:
+  condition: v3
+reward:
+  cost_lambda: 0.5

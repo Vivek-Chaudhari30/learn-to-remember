@@ -1,0 +1,6 @@
+# Experiment 4 (lambda sweep, RQ2): notes v3, no cost penalty.
+extends: base.yaml
+train:
+  condition: v3
+reward:
+  cost_lambda: 0.0

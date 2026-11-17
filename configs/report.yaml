@@ -1,0 +1,14 @@
+# Where scripts/make_report.py finds each run's eval files. A run's file for one
+# (company, condition) is <dir>/<company>__<condition>.json, searched in order.
+# Anything missing is reported as "not run". Paths are relative to the repo root.
+slug: qwen2.5-1.5b-instruct          # set to the M3 probe's choice (lower-case model name)
+runs:
+  base:                               # M3 baselines (+ the optional v0-v2 drift baselines)
+    - results/baselines/{slug}/company_a
+    - results/baselines/{slug}/company_b
+    - results/baselines/{slug}/company_a_drift
+  notes_l0.2:   [results/trained/notes_l0.2]     # experiment 2 (main run)
+  nonotes_l0.2: [results/trained/nonotes_l0.2]   # experiment 3
+  notes_l0:     [results/trained/notes_l0]       # experiment 4
+  notes_l0.5:   [results/trained/notes_l0.5]     # experiment 4
+  v0_l0.2:      [results/trained/v0_l0.2]        # experiment 5

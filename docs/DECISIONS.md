@@ -132,6 +132,22 @@ Written before the M3 GPU numbers exist, at the user's request. The code is mode
 - **Monitoring per step** (`train_log.json`): reward mean/std, accuracy (overall and per qtype), valid-call rate, KL, entropy, clip fraction, zero-variance share, tokens read, lookups, zero-lookup rate, repeated calls (the Echo Trap signal), how episodes ended, generated tokens per turn, the share of turns cut at the cap, grad norm, scaler scale, and seconds per step split into rollout / reference / update. The best and worst trajectory per step go to `rollouts/train_samples.jsonl`.
 - **Configs use `extends:`** (deep merge, `model_utils.load_config`): `train_notes.yaml` (experiment 2), `train_nonotes.yaml` (experiment 3), `overfit.yaml`.
 
+## 2026-11-17 (M5): Experiments 3–6 harness and paired statistics
+
+Written before any GPU result exists (M3 and M4 numbers are still pending). No experiment has run.
+
+- **Runs** (spec §4): exp 3 `train_nonotes.yaml`; exp 4 `train_l0.yaml` and `train_l0.5.yaml` (notes v3); exp 5 `train_v0.yaml`; exp 6 is eval only. Every run is identical to the main run (`base.yaml`: 200 steps, P = 8, G = 8, lr 1e-5, KL 0.04, stratified mix) except for the one setting being studied. `scripts/run_m5.sh <exp>` trains, then evaluates with the same greedy harness as the baselines.
+- **Exp 5 trains on v0 labels.** The sampler stratifies by the training version's qtype. At v0 the training pool is 986 gap / 404 lookup / 158 multihop / 94 stale / 72 aggregate, so stratifying keeps it from being two-thirds gap. Same caveat as M4: rare qtypes repeat (~3–4× per question over 200 steps).
+- **RQ3 needs three extra eval sets,** now in the plan: the base model on v0–v2 (`drift_base`), the exp-2 adapter on v0–v2 (`exp6`), and the exp-5 adapter on v0–v3.
+- **RQ4:** the exp-2 and exp-5 adapters are evaluated on company B, notes v3, against the base model on company B (from the M3 baselines). Company B is never trained on.
+- **Comparisons are paired** (`compare.py`), because every condition answers the same questions:
+  - accuracy difference: percentile paired bootstrap, 2000 resamples, seed 0, plus an exact two-sided McNemar p;
+  - tokens read: relative change mean(b)/mean(a) − 1 with a paired bootstrap CI.
+  
+  A difference is called one only when its 95% CI excludes 0 (spec §8). Comparing two independent CIs would be needlessly loose, because question difficulty dominates the variance. `align` refuses to pair runs over different question sets.
+- **RQ2 reads against λ = 0, not the base model.** The hypothesis is about what the penalty buys, so the comparison isolates the penalty from training itself.
+- **`scripts/make_report.py`** builds `results/report.md` from the result files listed in `configs/report.yaml`. Anything missing is printed "not run". It reports estimates and CIs; it does not mark hypotheses as confirmed.
+
 ## 2026-11-15: Python environment
 
 Project venv from Homebrew `python3.12` (`/opt/homebrew/bin/python3.12`). The base anaconda is broken (numpy 2.x / pandas ABI mismatch) and is never used. Installed at M0: torch 2.15.0, transformers 5.23.0, peft 0.21.3, numpy 2.5.5. `model_utils` handles the transformers `torch_dtype`→`dtype` rename and the v5 `activation_checkpointing_enable` rename, so older Colab/Kaggle images still work.
