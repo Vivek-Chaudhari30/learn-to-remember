@@ -24,3 +24,8 @@ wandb/
 results/**/completions*.json
 results/**/rollouts/
 results/**/*.log
+
+# GPU-run working state (scripts/run_all.sh): logs, stage markers, result zips
+logs/
+results/.stages/
+*.zip

@@ -64,11 +64,21 @@ Workspace (rebuilt from the seed; generated files are gitignored, the eval sets 
 .venv/bin/python scripts/generate_workspace.py
 ```
 
-GPU runs (Kaggle T4 x2, or `scripts/run_m4.sh` / `scripts/run_m5.sh` on a rented GPU), in order:
+GPU runs: the whole experiment runs on one CUDA GPU with two commands. The full guide is [`docs/RUNBOOK.md`](docs/RUNBOOK.md).
 
-1. `notebooks/kaggle_m3.ipynb`: model probe, baselines with and without notes, log-prob memory check.
-2. `notebooks/kaggle_m4.ipynb`: seconds per step, overfit check, main run (experiment 2), adapter eval.
-3. `notebooks/kaggle_m5.ipynb`: experiments 3–6, one session per experiment.
+```bash
+bash scripts/setup_server.sh
+```
+
+```bash
+bash scripts/run_all.sh probe
+```
+
+```bash
+MODEL=<probe choice> bash scripts/run_all.sh
+```
+
+The first command is the one-time setup. The second runs the tests, a memory check and the model probe; choose the model from its verdict. The third runs everything else in order: baselines, drift baseline, M4 (timing, gated overfit check, main run) and M5 (experiments 3–6), then the report, the figures and `gpu_results.zip`. It is resumable: after an interruption, run the same command again. The Kaggle notebooks (`notebooks/kaggle_m3/m4/m5.ipynb`) remain as a fallback for T4s, but all runs in one study must use the same GPU type and dtype.
 
 After copying each run's result folder into `results/`:
 

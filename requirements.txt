@@ -1,6 +1,6 @@
 # Core (Mac/MPS for dev, CUDA for training)
 torch>=2.2
-transformers>=4.45
+transformers>=4.51,<6   # Qwen3 (probe) needs >= 4.51
 accelerate>=0.34
 peft>=0.12          # LoRA policy; the frozen reference is the same model with the adapter disabled
 

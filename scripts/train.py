@@ -22,7 +22,9 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import sys
+import tempfile
 import time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -121,14 +123,19 @@ def main():
           f"| lr {t['lr']} | kl {t['kl_coef']} | lambda {env_cfg.cost_lambda} "
           f"| steps {start}..{t['steps'] - 1} | scaler {scaler is not None}")
 
+    # --timing: the loop's end-of-run checkpoint goes to a throwaway dir, deleted below,
+    # so no weights land in results/.
+    tmp_ckpt = tempfile.mkdtemp(prefix="ltr_timing_") if a.timing else None
     t0 = time.perf_counter()
     history = train_loop(policy=policy, tok=tok, fmt=fmt, generate=gen,
                          make_episodes=episodes, sampler=sampler, optimizer=optimizer, tcfg=t,
                          group_size=r["group_size"], steps=t["steps"],
-                         save_dir=a.save_dir if not a.timing else os.path.join(a.out, "_tmp"),
+                         save_dir=a.save_dir if not a.timing else tmp_ckpt,
                          log_path=os.path.join(a.out, "train_log.json"), start_step=start,
                          history=history, sample_dir=os.path.join(a.out, "rollouts"),
                          scaler=scaler, log=lambda s: print(s, flush=True))
+    if tmp_ckpt:
+        shutil.rmtree(tmp_ckpt, ignore_errors=True)
     secs = [h["sec_step"] for h in history]
     timing = {"steps_measured": len(secs), "sec_per_step": secs,
               "mean_sec_per_step": sum(secs) / len(secs) if secs else None,

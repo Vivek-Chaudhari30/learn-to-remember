@@ -172,6 +172,23 @@ The user asked to build M6 before any GPU result exists. Only the result-indepen
 - **Paired trajectory examples** (base vs trained, company A, v3): the questions the trained model won and lost, picked by a fixed rule (qtype order, then id), never by hand. Full trajectories come from `rollouts/` (gitignored) when present, otherwise from the saved samples.
 - **matplotlib ≥ 3.8** added to `requirements.txt` (3.11.2 in the venv). The tests run the figures and the whole notebook on synthetic result files. Synthetic numbers are plumbing only and are never reported.
 
+## 2026-11-17: GPU runs on one A6000 (osaka), bf16, one pipeline
+
+The user has a free RTX A6000 (48 GB, Ampere, driver 555 / CUDA 12.5) on a lab machine, osaka, and asked for the repo to be made ready to run the whole GPU part there. The user starts the runs.
+
+- **All GPU work runs on osaka in bf16:** probe, baselines, training and every eval. Comparisons are paired on the same questions, so the baseline and the trained model must share the GPU type and dtype. Greedy decoding in fp16 on a T4 and in bf16 on an A6000 can pick different tokens, which would leak a hardware difference into the result. The Kaggle notebooks stay as a fallback only, and no study mixes the two.
+- **`scripts/run_all.sh` runs M3 → M4 → M5 → report in order.** Each stage writes `results/.stages/<stage>.done` and is skipped on a re-run. Training resumes from its 10-step checkpoints. `scripts/setup_server.sh` builds the venv (torch cu124), downloads the models and runs the tests. `docs/RUNBOOK.md` has the step-by-step guide.
+- **Human decision points stay human.**
+  - The model choice: `run_all.sh probe` stops after the probe, and the user sets `MODEL` from its verdicts.
+  - An automatic **overfit gate**: the main run starts only if the overfit check's mean fraction correct over its last 10 steps is ≥ 0.8. GATE=0 overrides it, after reading the log.
+  - **Timing:** `m4_timing` prints the measured s/step and the training hours it implies. `PAUSE_AFTER_TIMING=1` stops there.
+- **Eval batch size stays 16 everywhere** (baselines and trained models alike), so left-padding is the same for every compared run. The training micro-batch (`MICRO`) may be raised for speed: accumulation is exact, so the gradient does not change.
+- **Fix:** `run_eval.py` now rebuilds `tables.md` from every result file in its `--out` folder and merges `timing.json`. Before, a second call into the same folder (exp 5 evaluates company A then company B; exp 6 adds to the main run's folder) overwrote the earlier tables and timings. The per-condition eval JSONs were never affected.
+- **`requirements.txt`:** transformers ≥ 4.51, < 6 (Qwen3 needs 4.51; the Kaggle notebooks already pinned this).
+- **Rehearsal:** before pushing, the whole pipeline ran end to end on the Mac with `SMOKE=1` (Qwen2.5-0.5B, 2 steps, 3 questions per eval). Every stage completed, re-runs skipped finished stages, and the report and figures filled every cell. That checks the plumbing only; its numbers are never reported. It found two bugs, both fixed:
+  1. The timing run left its throwaway checkpoint in `results/train/timing/_tmp`. For 1.5B that is hundreds of MB, and it got zipped. It now goes to a temp dir that is deleted, and `pack_results.py` skips `.pt`, `.safetensors` and `.bin` in any case.
+  2. The overfit gate did not stop the run. `set -e` does not fire inside `a || { gate && b; }`. It is now an explicit `if`, re-tested: a failing overfit log exits 1 before the main run, and `GATE=0` passes.
+
 ## 2026-11-15: Python environment
 
 Project venv from Homebrew `python3.12` (`/opt/homebrew/bin/python3.12`). The base anaconda is broken (numpy 2.x / pandas ABI mismatch) and is never used. Installed at M0: torch 2.15.0, transformers 5.23.0, peft 0.21.3, numpy 2.5.5. `model_utils` handles the transformers `torch_dtype`→`dtype` rename and the v5 `activation_checkpointing_enable` rename, so older Colab/Kaggle images still work.
