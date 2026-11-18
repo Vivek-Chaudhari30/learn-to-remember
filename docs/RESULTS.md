@@ -97,3 +97,7 @@ not run (GPU). `scripts/run_m5.sh` / `notebooks/kaggle_m5.ipynb`; tables are gen
 - exp 5 (trained on v0 notes, RQ3): not run
 - exp 6 (transfer to company B, RQ4; drift evals of exp 2): not run
 - base model on notes v0–v2 (RQ3 reference): not run
+
+## Figures and analysis (M6)
+
+Not run: no figure has data yet (see [`figures/INDEX.md`](../figures/INDEX.md)). Regenerate with `scripts/make_figures.py` and `scripts/make_report.py` after the M3–M5 GPU runs.

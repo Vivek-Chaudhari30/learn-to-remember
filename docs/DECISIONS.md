@@ -148,6 +148,30 @@ Written before any GPU result exists (M3 and M4 numbers are still pending). No e
 - **RQ2 reads against λ = 0, not the base model.** The hypothesis is about what the penalty buys, so the comparison isolates the penalty from training itself.
 - **`scripts/make_report.py`** builds `results/report.md` from the result files listed in `configs/report.yaml`. Anything missing is printed "not run". It reports estimates and CIs; it does not mark hypotheses as confirmed.
 
+## 2026-11-17 (M6, code only): figures, analysis notebook, README
+
+The user asked to build M6 before any GPU result exists. Only the result-independent parts are built. The written reading of the results (the README "honest read") waits for real numbers, and the README says so.
+
+- **One code path for all figures.** `analysis.py` pulls figure data out of the result files (pure functions, no plotting). `figures.py` draws it. `scripts/make_figures.py` and `notebooks/analysis.ipynb` both call these, so the notebook and the committed figures cannot disagree. The notebook is committed without outputs. `configs/report.yaml` gains `train_logs:` (run → `train_log.json` folder).
+- **Missing data is never drawn as data.**
+  - A figure none of whose runs exist is not written; it is listed as "not run" in `figures/INDEX.md`.
+  - A figure with some runs missing is drawn with what exists, says "not run: ..." under the plot, and shows "not run" in each empty bar slot.
+- **CIs on every point.** Summary metrics use the CI `eval.summarize` stored. Per-qtype rates computed in `analysis.py` (accuracy and file-tool use by qtype) use the same percentile bootstrap (2000 resamples, seed 0). Paired tests stay in the report tables (`report.py`), not the figures.
+- **Figures:**
+  - training curves per run: faint per-step line plus a 10-step trailing mean; rate panels fixed to 0–1 so noise is not magnified;
+  - λ-sweep training curves;
+  - RQ1: 2×2 bars;
+  - RQ2: accuracy vs tokens read, both CIs, λ points joined in λ order;
+  - RQ3: accuracy by eval notes version;
+  - RQ4: company B bars;
+  - RQ5: accuracy and file-tool use by qtype, and a lookups-per-question histogram.
+- **Color follows the entity across all figures:** base = blue `#2a78d6`, trained on v3 = orange `#eb6834`, trained on v0 = aqua `#1baf7a`.
+  - This is the reference data-viz palette's first three slots. The validator passes them all-pairs on the light surface (worst CVD ΔE 9.2, normal-vision 24.0). A grey "base" failed the chroma floor, so it was not used.
+  - Aqua is under 3:1 contrast, so every series is direct-labeled or named on the axis.
+  - The λ-sweep curves use one blue ordinal ramp (λ=0 light → 0.5 dark), which passes `--ordinal`.
+- **Paired trajectory examples** (base vs trained, company A, v3): the questions the trained model won and lost, picked by a fixed rule (qtype order, then id), never by hand. Full trajectories come from `rollouts/` (gitignored) when present, otherwise from the saved samples.
+- **matplotlib ≥ 3.8** added to `requirements.txt` (3.11.2 in the venv). The tests run the figures and the whole notebook on synthetic result files. Synthetic numbers are plumbing only and are never reported.
+
 ## 2026-11-15: Python environment
 
 Project venv from Homebrew `python3.12` (`/opt/homebrew/bin/python3.12`). The base anaconda is broken (numpy 2.x / pandas ABI mismatch) and is never used. Installed at M0: torch 2.15.0, transformers 5.23.0, peft 0.21.3, numpy 2.5.5. `model_utils` handles the transformers `torch_dtype`→`dtype` rename and the v5 `activation_checkpointing_enable` rename, so older Colab/Kaggle images still work.

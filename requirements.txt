@@ -9,7 +9,10 @@ pyyaml>=6.0
 numpy>=1.24
 pytest>=8.0
 
+# Analysis
+matplotlib>=3.8      # M6 figures (scripts/make_figures.py)
+
 # Added in later milestones:
-#   rank_bm25 (M2, or a hand-written BM25), matplotlib (M6)
+#   rank_bm25 (M2, or a hand-written BM25)
 #   trl: cross-check of the GRPO math ONLY, never the trainer
 #   vllm: optional GPU-only rollout speed-up, never on macOS
