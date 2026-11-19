@@ -45,7 +45,7 @@ How the results will be read: every number is greedy decoding on the full eval s
 - k3 KL to the frozen reference (the adapter switched off), PPO clip 0.2;
 - a loss mask on the model-sampled tokens only;
 - trajectories keep the exact sampled token ids (no re-tokenization);
-- log-probs are computed in checkpointed chunks, so long contexts fit on a T4.
+- log-probs are computed in checkpointed chunks, so long contexts fit in GPU memory.
 
 ## Reproducing
 

@@ -37,6 +37,29 @@ The setup script:
 
 Overrides: `PY=python3.12`, `TORCH_INDEX=<wheel index url>`, `HF_HOME=/path/with/space`.
 
+## 1b. CUDA smoke test (optional, a few minutes)
+
+The full pipeline was rehearsed on a Mac, not on CUDA. Before the real run, rehearse it
+once on osaka with the small 0.5B model, in a **separate clone** (it writes `results/`
+and `checkpoints/`, which must not mix with the real run):
+
+```bash
+git clone https://github.com/Vivek-Chaudhari30/learn-to-remember.git ~/ltr-smoke
+```
+
+```bash
+cd ~/ltr-smoke && ln -s ~/learn-to-remember/.venv .venv
+```
+
+```bash
+SMOKE=1 MODEL=Qwen/Qwen2.5-0.5B-Instruct bash scripts/run_all.sh
+```
+
+It runs every stage (2 training steps, 3 questions per eval) in bf16 on the GPU and
+ends with `All stages done`. It exercises the CUDA, bf16, LoRA, checkpoint and eval paths.
+Its numbers mean nothing and are never reported. Delete `~/ltr-smoke` afterwards. If it
+fails, bring back its `logs/` before starting the real run.
+
 ## 2. Model probe (M3, ~minutes)
 
 ```bash
@@ -57,6 +80,10 @@ accuracy in [20%, 60%]:
 | Qwen2.5-1.5B passes (alone or with Qwen3) | `Qwen/Qwen2.5-1.5B-Instruct` |
 | only Qwen3-1.7B passes | `Qwen/Qwen3-1.7B` |
 | neither passes | **stop**: bring back `results/probe` and `logs/`; this needs a decision (e.g. an SFT warm start) |
+
+The next command checks this for you: it refuses to start unless the `MODEL` you pass
+passed the probe. `PROBE_CHECK=0` overrides that check; use it only for a deviation we
+have agreed on and logged.
 
 ## 3. Everything else
 
@@ -143,7 +170,7 @@ scp osaka:learn-to-remember/gpu_results.zip ~/Downloads/
 `--rollouts` adds every eval trajectory. Keep `checkpoints/` on the server until the
 results are analysed.
 
-## SMOKE rehearsal (plumbing only)
+## SMOKE rehearsal (plumbing only, any device)
 
 ```bash
 SMOKE=1 DTYPE=auto MODEL=Qwen/Qwen2.5-0.5B-Instruct bash scripts/run_all.sh

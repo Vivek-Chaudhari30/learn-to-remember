@@ -12,6 +12,8 @@
 # so after any interruption just run the same command again.
 #
 # Gates (the run stops instead of wasting GPU hours):
+#   - before anything else, MODEL must have passed the probe (results/probe/probe_summary.json).
+#     PROBE_CHECK=0 skips this check (only for a deliberate, logged deviation).
 #   - after the overfit check, the mean fraction correct over its last 10 steps must be
 #     >= OVERFIT_MIN (default 0.8). GATE=0 skips the gate (only after reading the log).
 #   - after the M4 timing stage it prints the measured s/step and the training hours
@@ -67,6 +69,34 @@ if acc < thr:
 EOF
 }
 
+probe_check() {   # the chosen MODEL must have passed the probe (spec §3.5)
+  [ "${PROBE_CHECK:-1}" = "0" ] && { echo "probe check skipped (PROBE_CHECK=0)"; return 0; }
+  python - "$MODEL" <<'EOF'
+import json, sys
+model = sys.argv[1]
+try:
+    rows = json.load(open("results/probe/probe_summary.json"))
+except FileNotFoundError:
+    print("no results/probe/probe_summary.json: run the probe first (bash scripts/run_all.sh probe)")
+    sys.exit(1)
+by = {r["model"]: r for r in rows}
+passing = [r["model"] for r in rows if r["passes"]]
+if model not in by:
+    print(f"MODEL={model} was not probed. Probed: {sorted(by)}. Passing: {passing or 'none'}.")
+    sys.exit(1)
+r = by[model]
+print(f"probe: {model} valid calls {r['valid_call_rate']:.3f}, accuracy {r['accuracy']:.3f}, "
+      f"passes={r['passes']}")
+if not r["passes"]:
+    print(f"FAILED: {model} did not pass the probe (valid calls >= 0.80, accuracy in [0.20, 0.60]). "
+          f"Passing: {passing or 'none'}. If none passes, stop and bring back results/probe and "
+          "logs/ (this needs a decision, e.g. an SFT warm start). PROBE_CHECK=0 overrides.")
+    sys.exit(1)
+if "Qwen/Qwen2.5-1.5B-Instruct" in passing and model != "Qwen/Qwen2.5-1.5B-Instruct":
+    print("note: Qwen2.5-1.5B-Instruct also passed; the spec keeps it as the default when it passes.")
+EOF
+}
+
 timing_report() {
   python - <<'EOF'
 import json, os
@@ -100,6 +130,10 @@ export MODEL=${MODEL:?set MODEL to the probe choice, e.g. MODEL=Qwen/Qwen2.5-1.5
 SLUG=$(basename "$MODEL" | tr '[:upper:]' '[:lower:]')
 if [ "${SMOKE:-0}" != "1" ] && [ ! -f "$STAGES/m3_probe.done" ]; then
   echo "run the probe first: bash scripts/run_all.sh probe"; exit 1
+fi
+# (explicit if, for the same `set -e` reason as the overfit gate below)
+if [ "${SMOKE:-0}" != "1" ]; then
+  if ! probe_check; then exit 1; fi
 fi
 echo "MODEL=$MODEL DTYPE=$DTYPE slug=$SLUG"
 

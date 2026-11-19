@@ -172,6 +172,11 @@ The user asked to build M6 before any GPU result exists. Only the result-indepen
 - **Paired trajectory examples** (base vs trained, company A, v3): the questions the trained model won and lost, picked by a fixed rule (qtype order, then id), never by hand. Full trajectories come from `rollouts/` (gitignored) when present, otherwise from the saved samples.
 - **matplotlib ≥ 3.8** added to `requirements.txt` (3.11.2 in the venv). The tests run the figures and the whole notebook on synthetic result files. Synthetic numbers are plumbing only and are never reported.
 
+## 2026-11-18: probe check before the full run; CUDA smoke test on osaka
+
+- **`run_all.sh` now checks the probe verdict.** Before the first stage it reads `results/probe/probe_summary.json` and exits 1 unless the `MODEL` it was given passed the §3.5 rule. Before, `run_all.sh probe` marked itself done whatever the verdict, so a model that failed (or a typo in `MODEL`) could start hours of training on a bad learning signal. The check also notes when Qwen2.5-1.5B passed but another model was chosen, because the spec keeps Qwen2.5 when it passes. `PROBE_CHECK=0` overrides, only for an agreed and logged deviation (for example an SFT warm start if neither model passes). SMOKE runs skip the check, because they have no probe. Tested in a scratch copy with a made-up summary: a failing model, an unprobed name and a missing summary each exit 1 before any stage; a passing model runs on; `PROBE_CHECK=0` skips the check.
+- **RUNBOOK §1b: optional CUDA smoke test.** The rehearsal ran on the Mac, so the CUDA/bf16 path has not run yet. `SMOKE=1` with Qwen2.5-0.5B in a separate clone on osaka (sharing the venv through a symlink; every script puts its own clone's `src/` first on `sys.path`, so the clone uses its own code and data) tests that path in minutes without touching the real `results/`.
+
 ## 2026-11-17: GPU runs on one A6000 (osaka), bf16, one pipeline
 
 The user has a free RTX A6000 (48 GB, Ampere, driver 555 / CUDA 12.5) on a lab machine, osaka, and asked for the repo to be made ready to run the whole GPU part there. The user starts the runs.
