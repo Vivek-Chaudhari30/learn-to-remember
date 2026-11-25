@@ -124,6 +124,11 @@ lengths (defaults 5 and 16). Pilot accuracies mean nothing and are never reporte
 Each clone records what kind of run it holds (`results/.stages/.kind`) and refuses a
 different kind, so pilot or smoke stages can never be mixed into the real `results/`.
 
+Every `run_all.sh` command except SMOKE sets `HF_HUB_OFFLINE=1` itself, so models load from
+`HF_HOME` only and never contact Hugging Face during the run. If a stage stops with a
+"cannot find the requested files in the local cache" error, the model was never downloaded:
+re-run `scripts/setup_server.sh`, or pass `HF_HUB_OFFLINE=0` once.
+
 ## 2. Model probe (M3, ~minutes)
 
 ```bash

@@ -138,6 +138,12 @@ if [ "$MODE" != "status" ]; then
   echo "$KIND" > "$STAGES/.kind"
 fi
 
+# Models are already in HF_HOME (setup_server.sh downloads them), so load from the cache
+# only: a Hugging Face outage or rate limit can't crash a stage during a 2-day run, and the
+# "unauthenticated requests" notice goes away. SMOKE is exempt (it fetches the 0.5B weights).
+# HF_HUB_OFFLINE=0 turns this off.
+if [ "$KIND" != "smoke" ]; then export HF_HUB_OFFLINE=${HF_HUB_OFFLINE:-1}; fi
+
 case "$MODE" in
   status)
     ls -1 "$STAGES" 2>/dev/null | sed 's/\.done$//' || true
