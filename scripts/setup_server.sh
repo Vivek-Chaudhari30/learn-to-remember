@@ -1,17 +1,21 @@
 #!/usr/bin/env bash
-# One-time setup on a Linux CUDA server (e.g. osaka, RTX A6000). Run from the repo root:
+# One-time setup on a Linux CUDA server (e.g. umibozu, RTX A6000). Run from the repo root:
 #   bash scripts/setup_server.sh
 # Creates .venv, installs a CUDA build of torch plus the project, downloads the
 # models, and runs the test suite. Safe to re-run. Overrides:
-#   PY=python3.12              interpreter used to create the venv (>= 3.10)
-#   TORCH_INDEX=<url>          torch wheel index (default CUDA 12.4: driver >= 550)
+#   PY=python3.12              interpreter used to create the venv (3.10-3.13)
+#   TORCH_INDEX=<url>          torch wheel index (default CUDA 12.4: driver >= 550;
+#                              driver >= 570, e.g. umibozu's 580: .../whl/cu128 gives a newer torch)
 #   HF_HOME=/big/disk/hf       where models are cached (~7 GB)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PY=${PY:-python3}
 TORCH_INDEX=${TORCH_INDEX:-https://download.pytorch.org/whl/cu124}
 
-"$PY" -c 'import sys; assert sys.version_info >= (3, 10), f"need Python >= 3.10, got {sys.version}"'
+# torch's CUDA wheels lag new Pythons (umibozu's conda base is 3.14: no cu124 wheels), so
+# refuse early instead of failing half-way. A conda env works: conda create -n ltr python=3.12
+"$PY" -c 'import sys; v = sys.version_info[:2]; assert (3, 10) <= v <= (3, 13), \
+f"need Python 3.10-3.13 (3.12 recommended), got {sys.version.split()[0]}: try conda create -n ltr python=3.12"'
 nvidia-smi --query-gpu=name,memory.total,memory.used,driver_version,compute_cap --format=csv
 [ -d .venv ] || "$PY" -m venv .venv
 # shellcheck disable=SC1091

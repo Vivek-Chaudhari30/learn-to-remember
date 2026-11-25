@@ -1,4 +1,4 @@
-# GPU runbook: the whole experiment on one CUDA GPU (osaka, RTX A6000)
+# GPU runbook: the whole experiment on one CUDA GPU (lab RTX A6000, e.g. umibozu)
 
 Everything from the model probe (M3) to the last experiment (M5) runs with two
 commands. Each stage is skipped once it is done, and training resumes from its
@@ -11,13 +11,38 @@ runs from Kaggle or another card.
 ## 0. Requirements
 
 - Linux, NVIDIA GPU with >= 16 GB (A6000: 48 GB). bf16 needs compute capability >= 8.0.
-- Driver new enough for the torch build (osaka: driver 555, CUDA 12.5 -> torch cu124 wheels).
-- Python >= 3.10 with `venv`, and pip install rights (no root needed).
+- Driver new enough for the torch build: >= 550 for the torch cu124 wheels (`nvidia-smi` shows it;
+  osaka had driver 555, CUDA 12.5).
+- Python 3.10–3.13 (3.12 recommended) with `venv`, and pip install rights (no root needed).
+  torch has no CUDA wheels for 3.14 yet; umibozu's conda base is 3.14, so use a conda env.
 - Network: github.com and huggingface.co (~7 GB of models, public, no token).
 - Disk: ~15–20 GB free (models ~7 GB, torch ~5 GB, checkpoints ~0.2 GB per run, results small).
 - A way to keep jobs alive for many hours: `tmux` (or `screen`).
 
 ## 1. Setup (once)
+
+The lab machines are shared. Pick a GPU that shows FREE, and check it yourself before
+starting (`nvidia-smi`: next to no memory used, 0–5% utilisation). Then set these in every
+shell you run from (put them in `~/.bashrc` to keep them):
+
+```bash
+export CUDA_VISIBLE_DEVICES=0 HF_HOME=~/hf_cache PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+```
+
+`CUDA_VISIBLE_DEVICES` pins the job to one GPU, `HF_HOME` keeps the ~7 GB of models in
+your home folder, and `expandable_segments` makes out-of-memory errors from fragmentation
+less likely with long contexts. If the server's Python is 3.14 or only conda's, make a
+Python 3.12 env for this project and pass it to the setup script, which still builds its own
+`.venv` (later commands use `.venv`, so the env is only needed once). With a driver >= 570
+(umibozu has 580), the cu128 wheel index gives a newer torch:
+
+```bash
+conda create -n ltr python=3.12 -y && conda activate ltr
+```
+
+```bash
+PY=python TORCH_INDEX=https://download.pytorch.org/whl/cu128 bash scripts/setup_server.sh 2>&1 | tee setup.log
+```
 
 ```bash
 git clone https://github.com/Vivek-Chaudhari30/learn-to-remember.git
@@ -40,7 +65,7 @@ Overrides: `PY=python3.12`, `TORCH_INDEX=<wheel index url>`, `HF_HOME=/path/with
 ## 1b. CUDA smoke test (optional, a few minutes)
 
 The full pipeline was rehearsed on a Mac, not on CUDA. Before the real run, rehearse it
-once on osaka with the small 0.5B model, in a **separate clone** (it writes `results/`
+once on the server with the small 0.5B model, in a **separate clone** (it writes `results/`
 and `checkpoints/`, which must not mix with the real run):
 
 ```bash
@@ -59,6 +84,45 @@ It runs every stage (2 training steps, 3 questions per eval) in bf16 on the GPU 
 ends with `All stages done`. It exercises the CUDA, bf16, LoRA, checkpoint and eval paths.
 Its numbers mean nothing and are never reported. Delete `~/ltr-smoke` afterwards. If it
 fails, bring back its `logs/` before starting the real run.
+
+## 1c. Pilot run (recommended, ~1–3 h)
+
+The smoke test proves the code paths work. The pilot proves the **real** run works: the
+real model (Qwen2.5-1.5B) at the real settings (group size 8, 8 questions per step, 4k
+context, same batch sizes), so memory use and speed are what the full run will see. Each
+stage is cut short: 5 training steps per run and 16 questions per eval. It runs every
+stage, from baselines to the report and zip, in order. Use its own clone again:
+
+```bash
+git clone https://github.com/Vivek-Chaudhari30/learn-to-remember.git ~/ltr-pilot
+```
+
+```bash
+cd ~/ltr-pilot && ln -s ~/learn-to-remember/.venv .venv
+```
+
+```bash
+tmux new -s pilot
+```
+
+```bash
+PILOT=1 bash scripts/run_all.sh
+```
+
+At the end it runs `scripts/pilot_estimate.py`, which prints:
+
+- the measured seconds per training step and per eval question (medians, warm-up step dropped);
+- peak GPU memory;
+- the full run's hours, from those measured rates;
+- `PROBLEMS:` if any loss went non-finite or memory came close to 48 GB.
+
+If it ends with `No problems found`, start the real run (§2). If not, bring back
+`~/ltr-pilot/gpu_results.zip` and `logs/`. `PILOT_STEPS` and `PILOT_LIMIT` change the
+lengths (defaults 5 and 16). Pilot accuracies mean nothing and are never reported. Keep
+`~/ltr-pilot` until the real run has started cleanly, then delete it.
+
+Each clone records what kind of run it holds (`results/.stages/.kind`) and refuses a
+different kind, so pilot or smoke stages can never be mixed into the real `results/`.
 
 ## 2. Model probe (M3, ~minutes)
 
@@ -163,7 +227,7 @@ When it finishes, the last step writes `gpu_results.zip`. It contains `results/`
 for example:
 
 ```bash
-scp osaka:learn-to-remember/gpu_results.zip ~/Downloads/
+scp umibozu:learn-to-remember/gpu_results.zip ~/Downloads/
 ```
 
 `python scripts/pack_results.py` re-makes it at any point, for partial results, and

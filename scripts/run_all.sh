@@ -22,6 +22,11 @@
 # DTYPE defaults to bf16 (Ampere or newer). Do not mix GPUs or dtypes across stages.
 # SMOKE=1: plumbing rehearsal only (tiny steps / question limits, any device, no probe,
 # no gate). Its numbers mean nothing and must never be reported.
+# PILOT=1: a dress rehearsal on the real GPU before the full run, in a separate clone.
+# Real model (default Qwen2.5-1.5B) and real settings (group size, context, batch sizes),
+# but PILOT_STEPS (default 5) steps per training run and PILOT_LIMIT (default 16)
+# questions per eval; no probe, no gate. Ends with scripts/pilot_estimate.py: measured
+# s/step, s/question, peak memory, and the full run's hours. Accuracies mean nothing.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 # shellcheck disable=SC1091
@@ -38,6 +43,16 @@ if [ "${SMOKE:-0}" = "1" ]; then
   GATE=0
   echo "SMOKE=1: plumbing rehearsal, numbers are meaningless"
 fi
+if [ "${PILOT:-0}" = "1" ]; then
+  [ "${SMOKE:-0}" = "1" ] && { echo "PILOT=1 and SMOKE=1 cannot be combined"; exit 1; }
+  export MODEL=${MODEL:-Qwen/Qwen2.5-1.5B-Instruct}
+  export TRAIN_EXTRA="--steps ${PILOT_STEPS:-5}"
+  export EVAL_EXTRA="--limit ${PILOT_LIMIT:-16} --n-boot 200"
+  GATE=0
+  echo "PILOT=1: real model and settings, short runs; accuracies are not results"
+fi
+QUICK=0   # SMOKE or PILOT: no probe needed, results are never reported
+{ [ "${SMOKE:-0}" = "1" ] || [ "${PILOT:-0}" = "1" ]; } && QUICK=1
 
 stage() {   # stage <name> <command...>: run once, mark done
   local name=$1; shift
@@ -111,6 +126,18 @@ print(f"training still to run: {steps} steps -> {steps * s / 3600:.1f} h at this
 EOF
 }
 
+# One kind of run per clone: real, pilot and smoke results must never mix in results/.
+KIND=real
+[ "${SMOKE:-0}" = "1" ] && KIND=smoke
+[ "${PILOT:-0}" = "1" ] && KIND=pilot
+if [ "$MODE" != "status" ]; then
+  if [ -f "$STAGES/.kind" ] && [ "$(cat "$STAGES/.kind")" != "$KIND" ]; then
+    echo "this clone holds a $(cat "$STAGES/.kind") run; a $KIND run needs its own clone (see docs/RUNBOOK.md)"
+    exit 1
+  fi
+  echo "$KIND" > "$STAGES/.kind"
+fi
+
 case "$MODE" in
   status)
     ls -1 "$STAGES" 2>/dev/null | sed 's/\.done$//' || true
@@ -128,11 +155,11 @@ esac
 
 export MODEL=${MODEL:?set MODEL to the probe choice, e.g. MODEL=Qwen/Qwen2.5-1.5B-Instruct}
 SLUG=$(basename "$MODEL" | tr '[:upper:]' '[:lower:]')
-if [ "${SMOKE:-0}" != "1" ] && [ ! -f "$STAGES/m3_probe.done" ]; then
+if [ "$QUICK" != "1" ] && [ ! -f "$STAGES/m3_probe.done" ]; then
   echo "run the probe first: bash scripts/run_all.sh probe"; exit 1
 fi
 # (explicit if, for the same `set -e` reason as the overfit gate below)
-if [ "${SMOKE:-0}" != "1" ]; then
+if [ "$QUICK" != "1" ]; then
   if ! probe_check; then exit 1; fi
 fi
 echo "MODEL=$MODEL DTYPE=$DTYPE slug=$SLUG"
@@ -164,4 +191,9 @@ stage m5_exp6      bash scripts/run_m5.sh exp6
 python scripts/make_report.py --slug "$SLUG" > /dev/null
 python scripts/make_figures.py --slug "$SLUG"
 python scripts/pack_results.py
+if [ "${PILOT:-0}" = "1" ]; then
+  echo; echo "PILOT finished. Bring back gpu_results.zip and the estimate below."
+  python scripts/pilot_estimate.py
+  exit $?
+fi
 echo "All stages done. Bring back gpu_results.zip (results/report.md has the tables)."
