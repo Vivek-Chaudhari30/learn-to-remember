@@ -172,6 +172,20 @@ The user asked to build M6 before any GPU result exists. Only the result-indepen
 - **Paired trajectory examples** (base vs trained, company A, v3): the questions the trained model won and lost, picked by a fixed rule (qtype order, then id), never by hand. Full trajectories come from `rollouts/` (gitignored) when present, otherwise from the saved samples.
 - **matplotlib ≥ 3.8** added to `requirements.txt` (3.11.2 in the venv). The tests run the figures and the whole notebook on synthetic result files. Synthetic numbers are plumbing only and are never reported.
 
+## 2026-11-25: M3 probe on umibozu: Qwen3-1.7B is the model
+
+Measured on umibozu (A6000, bf16, torch 2.11+cu128, transformers 5.24.1), 50 probe questions, company A, notes v3, greedy:
+
+| model | valid calls | accuracy | s/question | §3.5 verdict |
+|---|---|---|---|---|
+| Qwen2.5-1.5B-Instruct | 0.157 | 0.000 | 0.46 | fails |
+| Qwen3-1.7B | 0.943 | 0.440 [0.30, 0.58] | 0.66 | passes |
+
+- **Chosen: `MODEL=Qwen/Qwen3-1.7B`**, by the pre-agreed rule (only Qwen3 passes). Its 44% sits inside the [20%, 60%] band, so GRPO has signal in both directions.
+- **Qwen2.5's 0% is the model, not a parser bug.** Its trajectories answer in plain text, `answer("Stonebridge Retail")`, never in the native `<tool_call>{json}</tool_call>` format the prompt asks for. It keeps doing so after the error message spells the format out. The parser is not loosened to accept this: valid native calls are part of the §3.5 rule, and changing the environment to fit one model would break comparability.
+- Probe per-qtype accuracy, Qwen3 (n = 10 each): lookup 100, multihop 10, aggregate 40, gap 50, stale 20.
+- Eval speed (0.66 s/question at batch 16) is much faster than the earlier guess, so all ~5,900 eval questions are roughly 1–2 h. The training rate is still to be measured by `m4_timing`.
+
 ## 2026-11-25: GPU moves to umibozu; PILOT dress rehearsal; Python 3.10–3.13 only
 
 - **Server: umibozu** (lab RTX A6000, 48 GB, compute 8.6, driver 580 / CUDA 13.0). osaka was busy; the user picked the free A6000. Same GPU type and bf16, so nothing in the study design changes. Every stage still runs on one card type. The home folder is on the lab's NFS share (30 TB free).
