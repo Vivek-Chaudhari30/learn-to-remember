@@ -1,0 +1,119 @@
+{
+ "config": {
+  "model": {
+   "id": "Qwen/Qwen3-1.7B",
+   "dev_id": "Qwen/Qwen2.5-0.5B-Instruct",
+   "dtype": "bf16",
+   "device": "auto"
+  },
+  "workspace": {
+   "seed_a": 0,
+   "seed_b": 1,
+   "note_versions": [
+    "v0",
+    "v1",
+    "v2",
+    "v3"
+   ]
+  },
+  "env": {
+   "max_tool_turns": 6,
+   "search_k_default": 5,
+   "search_k_max": 10,
+   "max_gen_tokens_per_turn": 256,
+   "max_tool_output_tokens": 400,
+   "max_context_tokens": 4096
+  },
+  "reward": {
+   "correct": 1.0,
+   "format_bonus": 0.1,
+   "cost_lambda": 0.2,
+   "cost_budget_tokens": 4000
+  },
+  "rollout": {
+   "group_size": 8,
+   "temperature": 1.0,
+   "top_p": 1.0
+  },
+  "train": {
+   "condition": "v3",
+   "question_mix": "stratified",
+   "overfit_n": 8,
+   "gen_batch": 32,
+   "lr": 5e-05,
+   "kl_coef": 0.04,
+   "clip_eps": 0.2,
+   "ppo_epochs": 1,
+   "grad_clip": 1.0,
+   "adv_eps": 0.0001,
+   "loss_norm": "seq_mean",
+   "skip_zero_variance_groups": false,
+   "steps": 60,
+   "prompts_per_step": 8,
+   "micro_batch": 2,
+   "checkpoint_every": 0,
+   "seed": 0,
+   "grad_checkpoint": true,
+   "lora": {
+    "r": 16,
+    "alpha": 32,
+    "dropout": 0.05,
+    "target_modules": [
+     "q_proj",
+     "k_proj",
+     "v_proj",
+     "o_proj",
+     "gate_proj",
+     "up_proj",
+     "down_proj"
+    ]
+   }
+  }
+ },
+ "args": {
+  "config": "configs/overfit.yaml",
+  "model": "Qwen/Qwen3-1.7B",
+  "dtype": "bf16",
+  "steps": null,
+  "micro_batch": 2,
+  "gen_batch": null,
+  "prompts_per_step": null,
+  "group_size": null,
+  "lr": null,
+  "max_gen_tokens": null,
+  "timing": false,
+  "resume": false,
+  "save_dir": "checkpoints/overfit",
+  "out": "results/train/overfit"
+ },
+ "meta": {
+  "model_id": "Qwen/Qwen3-1.7B",
+  "adapter": null,
+  "dtype": "torch.bfloat16",
+  "dtype_arg": "bf16",
+  "device": "cuda:0",
+  "git_commit": "8a6a141",
+  "torch": "2.11.0+cu128",
+  "transformers": "5.24.1",
+  "python": "3.12.16",
+  "host": "umibozu",
+  "date": "2026-11-26 12:09:59",
+  "gpu": "NVIDIA RTX A6000"
+ },
+ "n_train_questions": 1714,
+ "lora_trainable": 17432576,
+ "lora_dtypes": [
+  "torch.float32"
+ ],
+ "grad_scaler": false,
+ "overfit_ids": [
+  "company_a-train-0072",
+  "company_a-train-0430",
+  "company_a-train-0773",
+  "company_a-train-0816",
+  "company_a-train-1226",
+  "company_a-train-1305",
+  "company_a-train-1595",
+  "company_a-train-1599"
+ ]
+}

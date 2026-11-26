@@ -1,0 +1,67 @@
+Loading weights:   0%|          | 0/311 [00:00<?, ?it/s]Loading weights:   7%|▋         | 23/311 [00:00<00:01, 196.54it/s]Loading weights:  14%|█▍        | 43/311 [00:00<00:01, 155.30it/s]Loading weights:  19%|█▉        | 60/311 [00:00<00:01, 155.58it/s]Loading weights:  27%|██▋       | 84/311 [00:00<00:01, 183.92it/s]Loading weights:  33%|███▎      | 103/311 [00:00<00:01, 178.06it/s]Loading weights:  39%|███▉      | 122/311 [00:00<00:01, 167.13it/s]Loading weights:  45%|████▌     | 140/311 [00:00<00:01, 170.11it/s]Loading weights:  51%|█████     | 159/311 [00:00<00:00, 171.74it/s]Loading weights:  57%|█████▋    | 177/311 [00:01<00:00, 142.96it/s]Loading weights:  63%|██████▎   | 196/311 [00:01<00:00, 154.65it/s]Loading weights:  69%|██████▉   | 215/311 [00:01<00:00, 148.66it/s]Loading weights:  76%|███████▌  | 236/311 [00:01<00:00, 159.45it/s]Loading weights:  83%|████████▎ | 258/311 [00:01<00:00, 170.21it/s]Loading weights:  89%|████████▊ | 276/311 [00:01<00:00, 171.30it/s]Loading weights:  96%|█████████▌| 299/311 [00:01<00:00, 178.86it/s]Loading weights: 100%|██████████| 311/311 [00:01<00:00, 171.29it/s]
+model Qwen/Qwen3-1.7B on cuda | LoRA 17,432,576/1,738,007,552 params, ['torch.float32']
+condition v3 | mix fixed | P=8 G=8 | lr 5e-05 | kl 0.04 | lambda 0.2 | steps 0..59 | scaler False
+step    0 | reward +0.405 acc 0.359 | valid 0.96 | KL 0.0000 | ent 0.015 | clip 0.000 | zero-var 0.38 | tok 716 | rep 0.05 | |g| 0.437 | 106.8s (roll 59 ref 6 upd 41)
+step    1 | reward +0.457 acc 0.391 | valid 0.90 | KL 0.0086 | ent 0.015 | clip 0.000 | zero-var 0.00 | tok 540 | rep 0.05 | |g| 0.695 | 79.9s (roll 45 ref 5 upd 30)
+step    2 | reward +0.522 acc 0.453 | valid 0.93 | KL 0.0070 | ent 0.013 | clip 0.000 | zero-var 0.50 | tok 561 | rep 0.00 | |g| 0.411 | 83.7s (roll 47 ref 5 upd 32)
+step    3 | reward +0.433 acc 0.359 | valid 0.94 | KL 0.0353 | ent 0.007 | clip 0.000 | zero-var 0.75 | tok 504 | rep 0.00 | |g| 0.310 | 69.4s (roll 37 ref 4 upd 28)
+step    4 | reward +0.466 acc 0.391 | valid 0.93 | KL 0.0414 | ent 0.006 | clip 0.000 | zero-var 0.38 | tok 494 | rep 0.00 | |g| 0.448 | 69.2s (roll 36 ref 4 upd 28)
+step    5 | reward +0.454 acc 0.375 | valid 0.99 | KL 0.1516 | ent 0.007 | clip 0.000 | zero-var 0.62 | tok 420 | rep 0.00 | |g| 0.411 | 58.1s (roll 29 ref 4 upd 25)
+step    6 | reward +0.455 acc 0.375 | valid 0.99 | KL 0.1738 | ent 0.007 | clip 0.000 | zero-var 0.62 | tok 401 | rep 0.00 | |g| 1.176 | 57.9s (roll 28 ref 4 upd 26)
+step    7 | reward +0.410 acc 0.328 | valid 0.99 | KL 0.2429 | ent 0.006 | clip 0.000 | zero-var 0.75 | tok 366 | rep 0.00 | |g| 0.582 | 53.3s (roll 25 ref 4 upd 24)
+step    8 | reward +0.459 acc 0.375 | valid 1.00 | KL 0.3351 | ent 0.008 | clip 0.000 | zero-var 0.75 | tok 321 | rep 0.00 | |g| 0.544 | 47.4s (roll 21 ref 4 upd 23)
+step    9 | reward +0.339 acc 0.250 | valid 0.99 | KL 0.5167 | ent 0.011 | clip 0.000 | zero-var 0.62 | tok 217 | rep 0.02 | |g| 0.896 | 43.3s (roll 19 ref 3 upd 21)
+step   10 | reward +0.341 acc 0.250 | valid 1.00 | KL 0.6093 | ent 0.016 | clip 0.000 | zero-var 1.00 | tok 177 | rep 0.00 | |g| 0.021 | 37.6s (roll 15 ref 3 upd 20)
+step   11 | reward +0.341 acc 0.250 | valid 1.00 | KL 0.6071 | ent 0.015 | clip 0.000 | zero-var 1.00 | tok 177 | rep 0.00 | |g| 0.010 | 38.1s (roll 15 ref 3 upd 20)
+step   12 | reward +0.341 acc 0.250 | valid 1.00 | KL 0.6069 | ent 0.014 | clip 0.000 | zero-var 1.00 | tok 177 | rep 0.00 | |g| 0.011 | 37.0s (roll 14 ref 3 upd 20)
+step   13 | reward +0.341 acc 0.250 | valid 1.00 | KL 0.5990 | ent 0.015 | clip 0.000 | zero-var 1.00 | tok 177 | rep 0.00 | |g| 0.003 | 37.7s (roll 15 ref 3 upd 20)
+step   14 | reward +0.341 acc 0.250 | valid 1.00 | KL 0.6004 | ent 0.019 | clip 0.000 | zero-var 0.75 | tok 174 | rep 0.00 | |g| 0.578 | 39.0s (roll 15 ref 3 upd 20)
+step   15 | reward +0.345 acc 0.250 | valid 1.00 | KL 0.7575 | ent 0.041 | clip 0.000 | zero-var 0.62 | tok 107 | rep 0.00 | |g| 1.174 | 35.1s (roll 13 ref 3 upd 19)
+step   16 | reward +0.115 acc 0.016 | valid 1.00 | KL 1.1825 | ent 0.093 | clip 0.000 | zero-var 0.88 | tok 3 | rep 0.00 | |g| 0.564 | 27.6s (roll 8 ref 3 upd 17)
+step   17 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.1545 | ent 0.094 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.152 | 26.7s (roll 7 ref 3 upd 17)
+step   18 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.1508 | ent 0.109 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.059 | 26.6s (roll 7 ref 3 upd 17)
+step   19 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.1611 | ent 0.110 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.037 | 26.2s (roll 7 ref 3 upd 16)
+step   20 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.1480 | ent 0.111 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.041 | 26.2s (roll 7 ref 3 upd 16)
+step   21 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.1480 | ent 0.117 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.086 | 26.6s (roll 7 ref 3 upd 17)
+step   22 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.1911 | ent 0.114 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.053 | 26.5s (roll 7 ref 3 upd 17)
+step   23 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.1540 | ent 0.122 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.046 | 27.2s (roll 8 ref 3 upd 17)
+step   24 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.1771 | ent 0.115 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.049 | 26.8s (roll 7 ref 3 upd 17)
+step   25 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.2146 | ent 0.118 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.046 | 26.8s (roll 8 ref 3 upd 16)
+step   26 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.1830 | ent 0.118 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.045 | 26.8s (roll 7 ref 3 upd 17)
+step   27 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.1901 | ent 0.112 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.046 | 26.4s (roll 8 ref 3 upd 16)
+step   28 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.1885 | ent 0.115 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.077 | 26.6s (roll 7 ref 3 upd 16)
+step   29 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.2060 | ent 0.112 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.123 | 26.2s (roll 7 ref 3 upd 16)
+step   30 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.2062 | ent 0.111 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.032 | 26.6s (roll 7 ref 3 upd 17)
+step   31 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.2114 | ent 0.109 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.031 | 26.6s (roll 7 ref 3 upd 17)
+step   32 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.1955 | ent 0.103 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.030 | 26.2s (roll 7 ref 3 upd 16)
+step   33 | reward +0.116 acc 0.016 | valid 1.00 | KL 1.2275 | ent 0.105 | clip 0.000 | zero-var 0.88 | tok 0 | rep 0.00 | |g| 0.323 | 25.9s (roll 7 ref 3 upd 16)
+step   34 | reward +0.100 acc 0.000 | valid 0.98 | KL 1.3925 | ent 0.105 | clip 0.000 | zero-var 0.88 | tok 0 | rep 0.00 | |g| 1.742 | 27.6s (roll 8 ref 3 upd 16)
+step   35 | reward +0.100 acc 0.000 | valid 0.97 | KL 1.1820 | ent 0.119 | clip 0.000 | zero-var 0.75 | tok 0 | rep 0.00 | |g| 0.385 | 28.3s (roll 9 ref 3 upd 17)
+step   36 | reward +0.100 acc 0.000 | valid 0.88 | KL 1.1976 | ent 0.120 | clip 0.000 | zero-var 0.50 | tok 2 | rep 0.00 | |g| 1.046 | 28.8s (roll 9 ref 3 upd 17)
+step   37 | reward +0.100 acc 0.000 | valid 0.98 | KL 1.3809 | ent 0.125 | clip 0.000 | zero-var 0.88 | tok 0 | rep 0.00 | |g| 2.116 | 27.6s (roll 8 ref 3 upd 17)
+step   38 | reward +0.100 acc 0.000 | valid 0.98 | KL 1.1309 | ent 0.132 | clip 0.000 | zero-var 0.88 | tok 0 | rep 0.00 | |g| 0.127 | 27.7s (roll 9 ref 3 upd 16)
+step   39 | reward +0.100 acc 0.000 | valid 0.97 | KL 1.1844 | ent 0.134 | clip 0.000 | zero-var 0.75 | tok 1 | rep 0.00 | |g| 0.276 | 28.8s (roll 9 ref 3 upd 17)
+step   40 | reward +0.100 acc 0.000 | valid 0.98 | KL 1.2149 | ent 0.130 | clip 0.000 | zero-var 0.88 | tok 0 | rep 0.00 | |g| 0.186 | 28.4s (roll 9 ref 3 upd 17)
+step   41 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.1775 | ent 0.133 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.071 | 27.4s (roll 8 ref 3 upd 17)
+step   42 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.1904 | ent 0.136 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.067 | 26.0s (roll 7 ref 3 upd 16)
+step   43 | reward +0.100 acc 0.000 | valid 0.98 | KL 1.2040 | ent 0.131 | clip 0.000 | zero-var 0.88 | tok 0 | rep 0.00 | |g| 0.145 | 28.0s (roll 9 ref 3 upd 17)
+step   44 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.1838 | ent 0.129 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.030 | 26.8s (roll 8 ref 3 upd 16)
+step   45 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.1954 | ent 0.125 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.030 | 26.5s (roll 7 ref 3 upd 17)
+step   46 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.2077 | ent 0.126 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.031 | 26.6s (roll 7 ref 3 upd 17)
+step   47 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.2129 | ent 0.125 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.078 | 26.5s (roll 7 ref 3 upd 17)
+step   48 | reward +0.100 acc 0.000 | valid 0.98 | KL 1.3530 | ent 0.122 | clip 0.000 | zero-var 0.88 | tok 0 | rep 0.00 | |g| 0.505 | 27.3s (roll 8 ref 3 upd 16)
+step   49 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.2631 | ent 0.125 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.041 | 26.3s (roll 7 ref 3 upd 17)
+step   50 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.2721 | ent 0.129 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.057 | 26.8s (roll 7 ref 3 upd 17)
+step   51 | reward +0.100 acc 0.000 | valid 0.98 | KL 1.2650 | ent 0.133 | clip 0.000 | zero-var 0.88 | tok 0 | rep 0.00 | |g| 0.172 | 27.8s (roll 9 ref 3 upd 17)
+step   52 | reward +0.100 acc 0.000 | valid 0.98 | KL 1.3124 | ent 0.135 | clip 0.000 | zero-var 0.88 | tok 0 | rep 0.00 | |g| 0.108 | 28.9s (roll 10 ref 3 upd 17)
+step   53 | reward +0.100 acc 0.000 | valid 0.98 | KL 1.2556 | ent 0.143 | clip 0.000 | zero-var 0.88 | tok 0 | rep 0.00 | |g| 0.126 | 29.0s (roll 9 ref 3 upd 17)
+step   54 | reward +0.100 acc 0.000 | valid 0.97 | KL 1.2733 | ent 0.138 | clip 0.000 | zero-var 0.75 | tok 0 | rep 0.00 | |g| 0.224 | 28.3s (roll 9 ref 3 upd 17)
+step   55 | reward +0.100 acc 0.000 | valid 0.98 | KL 1.2697 | ent 0.134 | clip 0.000 | zero-var 0.88 | tok 0 | rep 0.00 | |g| 0.177 | 27.3s (roll 8 ref 3 upd 16)
+step   56 | reward +0.100 acc 0.000 | valid 0.98 | KL 1.2619 | ent 0.125 | clip 0.000 | zero-var 0.88 | tok 0 | rep 0.00 | |g| 0.085 | 27.4s (roll 8 ref 3 upd 17)
+step   57 | reward +0.100 acc 0.000 | valid 0.98 | KL 1.2311 | ent 0.125 | clip 0.000 | zero-var 0.88 | tok 0 | rep 0.00 | |g| 0.076 | 27.9s (roll 8 ref 3 upd 17)
+step   58 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.1877 | ent 0.121 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.033 | 26.3s (roll 7 ref 3 upd 16)
+step   59 | reward +0.100 acc 0.000 | valid 1.00 | KL 1.1934 | ent 0.122 | clip 0.000 | zero-var 1.00 | tok 0 | rep 0.00 | |g| 0.126 | 27.2s (roll 8 ref 3 upd 17)
+/share/NFS/u/vivek/learn-to-remember/.venv/lib/python3.12/site-packages/peft/utils/save_and_load.py:364: UserWarning: Could not find a config file in Qwen/Qwen3-1.7B - will assume that the vocabulary was not modified.
+  warnings.warn(
+done: steps 0..59 in 2091s
+{"steps_measured": 60, "mean_sec_per_step": 34.78933620390405, "mean_sec_rollout": 13.01723979030503, "mean_sec_update": 21.763396952068433, "wall_seconds": 2091.1439819240477, "P": 8, "G": 8, "micro_batch": 2, "gen_batch": 32, "gpu": "NVIDIA RTX A6000", "dtype": "torch.bfloat16", "model": "Qwen/Qwen3-1.7B", "peak_gpu_gb": 16.37}

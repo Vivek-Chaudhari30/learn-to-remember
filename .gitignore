@@ -29,3 +29,4 @@ results/**/*.log
 logs/
 results/.stages/
 *.zip
+gpu_snapshots/
