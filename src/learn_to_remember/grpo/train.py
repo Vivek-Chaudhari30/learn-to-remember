@@ -135,7 +135,10 @@ def train_step(policy, tok, fmt, generate, make_episodes, questions, optimizer, 
     # 3) rewards -> advantages
     rewards = torch.tensor([t.result.reward for t in trajs], dtype=torch.float32)
     gids = torch.tensor([i // group_size for i in range(len(trajs))])
-    adv = compute_advantages(rewards, gids, eps=tcfg["adv_eps"])
+    # adv_std_norm: false (base.yaml) since the 2026-11-26 overfit collapse; a config
+    # without the key keeps the original GRPO scaling.
+    adv = compute_advantages(rewards, gids, eps=tcfg["adv_eps"],
+                             scale_by_std=tcfg.get("adv_std_norm", True))
     grp_std = torch.stack([rewards[gids == g].std(unbiased=False) for g in range(len(questions))])
     zero_var = (grp_std < 1e-8)
     keep = list(range(len(trajs)))
@@ -145,6 +148,7 @@ def train_step(policy, tok, fmt, generate, make_episodes, questions, optimizer, 
 
     metrics = {"n_trajectories": len(trajs), "n_trained": B,
                "frac_zero_var_groups": zero_var.float().mean().item(),
+               "adv_abs_mean": adv.abs().mean().item(),
                "skipped_groups": int(zero_var.sum().item()) if tcfg.get(
                    "skip_zero_variance_groups") else 0}
     agg = {"loss": 0.0, "policy_loss": 0.0, "kl": 0.0, "clip_frac": 0.0, "entropy": 0.0}
@@ -260,6 +264,12 @@ def train_loop(*, policy, tok, fmt, generate, make_episodes, sampler: QuestionSa
     from ..model_utils import save_checkpoint
 
     history = list(history or [])
+    # A run from step 0 starts a fresh samples file (it is appended to per step, so a
+    # re-run into the same --out would otherwise mix in the old run's trajectories).
+    if sample_dir and start_step == 0:
+        stale = os.path.join(sample_dir, "train_samples.jsonl")
+        if os.path.exists(stale):
+            os.remove(stale)
     t_start = time.perf_counter()
     for step in range(start_step, steps):
         qs = sampler.for_step(step)

@@ -150,7 +150,7 @@ r = 1[correct]                          # main signal
 
 - **Trajectory as one token sequence:** `[prompt | model turn 1 | tool result 1 | model turn 2 | …]`, with a `loss_mask` that is 1 only on **tokens the model generated**. Prompt and tool-result tokens are 0.
 - **Re-tokenization pitfall:** keep the model's generated token ids exactly as sampled, and append tool results by tokenizing only that segment, as rendered by the chat template. Do **not** re-render and re-tokenize the whole conversation; tokenization can shift at segment boundaries and silently corrupt the log-probs. Write a unit test for this.
-- Advantages are per trajectory, normalized within each group (unchanged from GRPO-Zero). Every model token in a trajectory gets that trajectory's advantage.
+- Advantages are per trajectory, relative to the group mean. Every model token in a trajectory gets that trajectory's advantage. *(Changed 2026-11-26: no division by the group std (Dr. GRPO), `adv_std_norm: false`. With the std division, the first overfit check collapsed to answering without reading. See DECISIONS.md and `docs/incidents/2026-11-26-overfit-collapse/`.)*
 - The clipped objective and the k3 KL are computed **only on masked-in tokens**. Normalization: per-sequence mean over masked tokens, then batch mean. The Dr. GRPO normalization is a config option for an ablation.
 - Optional (DAPO-style): skip groups whose rewards are all equal (zero advantage) to save compute. Log how many are skipped.
 - Monitor collapse: per-token entropy, the fraction of groups with zero reward variance, the KL, and the rate of repeated identical tool calls. RAGEN reports an "Echo Trap" instability when GRPO is used for multi-turn training.

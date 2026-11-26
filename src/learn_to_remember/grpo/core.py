@@ -8,12 +8,16 @@
 #   prompt/completion API is kept as the special case. Position ids are passed
 #   explicitly from the attention mask. Masked-out tokens are zeroed with
 #   torch.where (inf-safe). A `dr_grpo` normalization option was added.
+#   `compute_advantages(scale_by_std=False)` drops the std division (Dr. GRPO);
+#   the default since the 2026-11-26 overfit collapse (docs/incidents/).
 """GRPO update math: group advantages -> per-token log-probs -> clipped loss + KL.
 
 Recap (unchanged from GRPO-Zero):
   - For each question, sample a group of G trajectories and score each one.
   - Group-relative advantage A_i = (r_i - mean_g(r)) / (std_g(r) + eps). The
-    group mean is the baseline, so there is no critic network.
+    group mean is the baseline, so there is no critic network. This project
+    trains with A_i = r_i - mean_g(r) (no std division, `adv_std_norm: false`):
+    see compute_advantages for why.
   - PPO-style clipped policy loss with A_i, plus a k3 KL penalty to a frozen
     reference (the LoRA policy with its adapter disabled).
 
@@ -74,19 +78,29 @@ def position_ids_from_mask(attention_mask: torch.Tensor) -> torch.Tensor:
 # Advantages
 # --------------------------------------------------------------------------- #
 def compute_advantages(rewards: torch.Tensor, group_ids: torch.Tensor,
-                       eps: float = 1e-4) -> torch.Tensor:
-    """Group-relative advantage A_i = (r_i - mean_g(r)) / (std_g(r) + eps).
+                       eps: float = 1e-4, scale_by_std: bool = True) -> torch.Tensor:
+    """Group-relative advantage A_i = r_i - mean_g(r), divided by (std_g(r) + eps)
+    when `scale_by_std` (the original GRPO).
 
-    The group mean is GRPO's baseline (no critic). Dividing by the group std
-    whitens the signal across questions of differing difficulty. When a whole
-    group has identical reward (std=0) the advantage collapses to ~0. There is
-    nothing to learn from that question this step, which is the correct behavior.
+    The group mean is GRPO's baseline (no critic). When a whole group has
+    identical reward (std=0) the advantage is ~0: nothing to learn from that
+    question this step.
+
+    Dividing by the group std makes every group's signal the same size, however
+    small its reward differences are. With a reading cost in the reward, that is
+    harmful: on a question the model always gets wrong, the samples differ only
+    by cost (e.g. 0.09075 vs 0.1), and the division turns that 0.009 gap into a
+    full ±1 "read less" signal, as strong as right vs wrong. That drove the
+    2026-11-26 overfit collapse to answering without reading
+    (docs/incidents/2026-11-26-overfit-collapse/). Without the division
+    (Dr. GRPO, Liu et al. 2025), advantages keep the reward's own scale.
     """
     advantages = torch.empty_like(rewards)
     for g in torch.unique(group_ids):
         m = group_ids == g
         rg = rewards[m]
-        advantages[m] = (rg - rg.mean()) / (rg.std(unbiased=False) + eps)
+        a = rg - rg.mean()
+        advantages[m] = a / (rg.std(unbiased=False) + eps) if scale_by_std else a
     return advantages
 
 

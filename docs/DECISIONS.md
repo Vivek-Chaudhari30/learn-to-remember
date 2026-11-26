@@ -172,6 +172,34 @@ The user asked to build M6 before any GPU result exists. Only the result-indepen
 - **Paired trajectory examples** (base vs trained, company A, v3): the questions the trained model won and lost, picked by a fixed rule (qtype order, then id), never by hand. Full trajectories come from `rollouts/` (gitignored) when present, otherwise from the saved samples.
 - **matplotlib ≥ 3.8** added to `requirements.txt` (3.11.2 in the venv). The tests run the figures and the whole notebook on synthetic result files. Synthetic numbers are plumbing only and are never reported.
 
+## 2026-11-26: overfit check FAILED: collapse to answering without reading
+
+Details, the per-step table and all raw files: [incidents/2026-11-26-overfit-collapse/](incidents/2026-11-26-overfit-collapse/README.md).
+
+- `m4_overfit` (8 fixed questions, lr 5e-5, 60 steps, 12:08–12:45 on umibozu) ended at fraction correct **0.000**, reward 0.100. The gate stopped `run_all.sh` before the main run.
+- Reading shrank from step 0 (716 → 177 tokens by step 10, files dropped out), and at step 16 the model began calling `answer` first with no lookups. Every trajectory then scored exactly the 0.1 format bonus, every group had zero variance, and it never recovered (KL ≈ 1.2).
+- **Cause:** on always-wrong questions the 8 samples differ only by reading cost (0.09075 vs 0.1). Dividing the advantage by the group std turns that 0.009 gap into a full ±1 signal for "read less." The 5× overfit lr made it fast; the main run has the same reward and advantage.
+- **Fix (chosen by the user): no std division.** `adv_std_norm: false` in `configs/base.yaml`, so every run (overfit, main, experiments 3–5) uses A = r − group mean (Dr. GRPO, Liu et al. 2025). The 0.009 cost gap on an always-wrong question now stays 0.009, while right vs wrong is ±0.5, so correctness dominates and the reading cost is a small nudge, as the reward intends. The overfit lr stays 5e-5: lowering it would only slow the same drift. Side effect: advantages are about half the size they were (±0.5 vs ±1 for a half-right group), so each step moves the model somewhat less at the same lr. The overfit gate will show whether that is still enough.
+- Also: `train_loop` now starts a fresh `train_samples.jsonl` when a run starts at step 0 (it is appended per step, so a re-run into the same folder mixed in the old run's samples), `train.py` prints `adv std-norm` at startup, `train_log.json` logs `adv_abs_mean`, and `run_all.sh redo <stage>` clears a stage's done-marker (and, for `m4_overfit`, its gate marker). 243 tests pass. A 2-step overfit-config run with Qwen2.5-0.5B on the Mac ran end to end with `adv std-norm False` (plumbing only).
+- Baselines, drift and timing are eval-only or unaffected and stay done. Next: on umibozu, `git pull`, `bash scripts/run_all.sh redo m4_overfit`, then `MODEL=Qwen/Qwen3-1.7B bash scripts/run_all.sh`.
+
+## 2026-11-26: baselines, drift and timing on umibozu (Qwen3-1.7B, bf16); snapshot saved
+
+`MODEL=Qwen/Qwen3-1.7B PAUSE_AFTER_TIMING=1 bash scripts/run_all.sh` ran `m3_baselines` (20:26–20:51), `m3_drift` (to 21:07) and `m4_timing` (to 21:13) on 2026-11-25, then paused. Before the full run, everything so far was zipped on umibozu (`pack_results.py --rollouts --out snapshot_before_full_run.zip`, 62 files, 1.2 MB) and copied to the Mac as `gpu_snapshots/snapshot_before_full_run.zip` (sha1 `eb3d8bd2…`, unpacked next to it; gitignored).
+
+**Base-model baselines** (accuracy %, 95% bootstrap CI):
+
+| | no_notes | v3 notes |
+|---|---|---|
+| company A (n = 293) | 38.2 [33.1, 43.7] | 34.5 [29.0, 39.9] |
+| company B (n = 300) | 37.7 [32.3, 43.3] | 32.7 [27.7, 38.3] |
+
+- Notes do not help the untrained model. With notes it does better on lookup (A: 48 → 87, B: 57 → 87), but gap and stale questions drop (A gap 60 → 38, stale 52 → 17; B gap 60 → 30, stale 50 → 12): it trusts the notes when it should go back to the source. Valid calls go up with notes (85 → 95%).
+- **Drift baseline**, company A with older notes: v0 23.9 [19.1, 29.0], v1 28.3 [23.2, 33.4], v2 34.8 [29.7, 40.3] (v3 is the 34.5 above). The per-qtype n changes with the version, because which questions count as gap or stale depends on what the notes cover.
+- Eval speed 0.71–1.35 s/question at batch 16 (probe: 0.66). These runs take more turns (3.9–4.9).
+
+**Timing** (3 steps, main config, P = 8, G = 8, micro-batch 2): 104.2, 127.5, 94.5 s, mean **108.8 s/step** (rollout 66.2 s, ref + update 42.5 s), **peak GPU 18.87 GB** of 48. Valid calls 0.91–0.95 during training, no non-finite values. 1,060 training steps still to run → **32.0 h**. Eval questions still to run: 11 × 293 + 2 × 300 = 3,823, about 1–1.5 h at these speeds. **Full run ≈ 33–34 h**, measured; this replaces the 35–55 h guess in the 2026-11-25 entry.
+
 ## 2026-11-25: M3 probe on umibozu: Qwen3-1.7B is the model
 
 Measured on umibozu (A6000, bf16, torch 2.11+cu128, transformers 5.24.1), 50 probe questions, company A, notes v3, greedy:

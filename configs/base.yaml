@@ -44,6 +44,8 @@ train:
   ppo_epochs: 1
   grad_clip: 1.0
   adv_eps: 1.0e-4
+  adv_std_norm: false   # A = r - group mean (Dr. GRPO). true = divide by group std (original
+                        # GRPO), which collapsed the 2026-11-26 overfit check: docs/DECISIONS.md
   loss_norm: seq_mean   # seq_mean (DeepSeekMath / spec default) | dr_grpo (ablation)
   skip_zero_variance_groups: false   # DAPO-style; log the count either way
   steps: 200

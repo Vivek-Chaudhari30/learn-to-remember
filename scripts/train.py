@@ -120,7 +120,8 @@ def main():
     with open(os.path.join(a.out, "run.json"), "w") as f:
         json.dump(run, f, indent=1, default=str)
     print(f"condition {cond} | mix {sampler.mix} | P={sampler.per_step} G={r['group_size']} "
-          f"| lr {t['lr']} | kl {t['kl_coef']} | lambda {env_cfg.cost_lambda} "
+          f"| lr {t['lr']} | kl {t['kl_coef']} | adv std-norm {t.get('adv_std_norm', True)} "
+          f"| lambda {env_cfg.cost_lambda} "
           f"| steps {start}..{t['steps'] - 1} | scaler {scaler is not None}")
 
     # --timing: the loop's end-of-run checkpoint goes to a throwaway dir, deleted below,

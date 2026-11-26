@@ -41,6 +41,27 @@ def test_advantages_degenerate_group_is_finite():
     assert adv.abs().max() < 1e-3
 
 
+def test_advantages_without_std_keep_the_reward_scale():
+    # The 2026-11-26 overfit collapse (docs/incidents/): on an always-wrong question the
+    # samples differ only by reading cost (0.09075 with one lookup, 0.1 with none).
+    wrong = torch.tensor([0.09075] * 7 + [0.1])
+    mixed = torch.tensor([1.1, 1.1, 1.1, 1.1, 0.1, 0.1, 0.1, 0.1])     # right vs wrong
+    g = torch.zeros(8, dtype=torch.long)
+    # dividing by the std makes the 0.009 cost gap as strong as right vs wrong
+    assert compute_advantages(wrong, g).abs().max() > 2.0
+    assert compute_advantages(mixed, g).abs().max() == pytest.approx(1.0, abs=1e-3)
+    # without it the cost gap stays tiny and right vs wrong dominates
+    a_wrong = compute_advantages(wrong, g, scale_by_std=False)
+    a_mixed = compute_advantages(mixed, g, scale_by_std=False)
+    assert a_wrong.abs().max() < 0.01
+    assert torch.allclose(a_mixed, mixed - mixed.mean())
+    assert a_mixed.abs().max() / a_wrong.abs().max() > 50
+    assert a_wrong[-1] > 0                          # reading less still helps, a little
+    # a constant group still gives zero advantage
+    assert compute_advantages(torch.full((4,), 0.1), torch.zeros(4, dtype=torch.long),
+                              scale_by_std=False).abs().max() == 0
+
+
 # --------------------------------------------------------------------------- #
 # grpo_loss
 # --------------------------------------------------------------------------- #

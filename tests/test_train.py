@@ -157,6 +157,33 @@ def test_zero_variance_groups_are_skipped_when_asked(tok):
     assert m["n_trained"] == 8 and m["policy_loss"] == pytest.approx(0.0, abs=1e-6)
 
 
+def test_adv_std_norm_switches_the_advantage_scale(tok):
+    _, m_std, _ = _grads_after_step(tok, 2)                     # key absent: original GRPO
+    policy = _policy(tok)
+    fmt, qs, scripts, make_eps = _setup(tok)
+    opt = torch.optim.SGD([p for p in policy.parameters() if p.requires_grad], lr=0.0)
+    m_raw, _ = train_step(policy, tok, fmt, PositionalGen(tok, fmt, scripts), make_eps, qs, opt,
+                          {**TCFG, "adv_std_norm": False}, group_size=4)
+    assert m_std["adv_abs_mean"] == pytest.approx(1.0, abs=0.01)    # half right, half wrong
+    assert m_raw["adv_abs_mean"] == pytest.approx(0.5, abs=0.01)    # (1.1 - 0.1) / 2
+
+
+def test_run_from_step_zero_starts_a_fresh_samples_file(tok, tmp_path):
+    samples = tmp_path / "rollouts" / "train_samples.jsonl"
+    samples.parent.mkdir()
+    samples.write_text(json.dumps({"step": 59, "id": "old-run"}) + "\n")
+    policy = _policy(tok)
+    fmt, qs, scripts, make_eps = _setup(tok)
+    opt = torch.optim.SGD([p for p in policy.parameters() if p.requires_grad], lr=0.0)
+    train_loop(policy=policy, tok=tok, fmt=fmt, generate=PositionalGen(tok, fmt, scripts),
+               make_episodes=make_eps, sampler=QuestionSampler(qs, per_step=2, mix="natural"),
+               optimizer=opt, tcfg={**TCFG, "checkpoint_every": 0}, group_size=4, steps=1,
+               save_dir=str(tmp_path / "ck"), log_path=str(tmp_path / "log.json"),
+               sample_dir=str(samples.parent), log=lambda s: None)
+    rows = [json.loads(line) for line in samples.read_text().splitlines()]
+    assert rows and all(r["step"] == 0 for r in rows)
+
+
 def test_resume_reproduces_an_uninterrupted_run(tok, tmp_path):
     def run(steps, start=0, save_dir=None, resume=False):
         torch.manual_seed(0)
@@ -241,6 +268,7 @@ def test_repo_configs_load():
     for name in ("train_notes", "train_nonotes", "overfit"):
         c = load_config(os.path.join(root, "configs", f"{name}.yaml"))
         assert c["train"]["lora"]["r"] == 16 and c["rollout"]["group_size"] == 8
+        assert c["train"]["adv_std_norm"] is False        # see the 2026-11-26 incident
     assert load_config(os.path.join(root, "configs", "train_nonotes.yaml"))["train"][
         "condition"] == "no_notes"
 

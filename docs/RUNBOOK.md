@@ -191,11 +191,20 @@ After `m4_overfit`, the mean fraction correct over its last 10 steps must be >= 
 (`OVERFIT_MIN`). If it is lower, the run stops before the main run, because a loop that
 cannot fit 8 questions should not spend 200 steps. Bring back `results/train/overfit/` and
 `logs/m4_overfit.log`. `GATE=0` overrides the gate; use it only after reading the log.
-To redo the overfit check:
+To redo the overfit check (after a fix, `git pull` first). Its old outputs are
+overwritten, so copy them aside first if you want to keep them:
 
 ```bash
-rm results/.stages/m4_overfit.done
+bash scripts/run_all.sh redo m4_overfit
 ```
+
+Then start the run again with the same `MODEL=... bash scripts/run_all.sh`. Finished
+stages (baselines, drift, timing) are skipped.
+
+The first overfit check on umibozu (2026-11-26) failed this gate: the model learned to
+answer without reading anything. See `docs/incidents/2026-11-26-overfit-collapse/`.
+What to look for in the log if it fails again: `tok 0` and `zero-var 1.00` on every step
+means the same collapse; `acc` rising but staying below 0.8 means it learns but slowly.
 
 ## 4. While it runs
 

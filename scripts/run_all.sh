@@ -6,6 +6,7 @@
 #                                              #   read the verdicts and choose MODEL (spec §3.5).
 #   MODEL=<choice> bash scripts/run_all.sh     # step 2: everything else, in order
 #   bash scripts/run_all.sh status             # which stages are done
+#   bash scripts/run_all.sh redo m4_overfit    # run one stage again on the next run
 #
 # Every finished stage writes results/.stages/<stage>.done and is skipped on a re-run.
 # A training stage cut off part-way resumes from its last checkpoint (every 10 steps),
@@ -155,8 +156,17 @@ case "$MODE" in
     echo "Next: read the verdicts above (results/probe/probe_summary.json), choose the model, then"
     echo "  MODEL=<choice> bash scripts/run_all.sh"
     exit 0 ;;
+  redo)   # redo <stage>: forget that a stage is done, so the next run does it again
+    name=${2:?usage: run_all.sh redo <stage> (see: run_all.sh status)}
+    [ -f "$STAGES/$name.done" ] || { echo "$name is not marked done"; exit 1; }
+    rm -f "$STAGES/$name.done"
+    # the overfit gate belongs to the overfit run it judged
+    [ "$name" = m4_overfit ] && rm -f "$STAGES/m4_overfit_gate.done"
+    echo "$name will run again on the next: MODEL=<model> bash scripts/run_all.sh"
+    echo "(its old outputs are overwritten; copy them aside first if you need them)"
+    exit 0 ;;
   all) ;;
-  *) echo "usage: run_all.sh [probe|all|status]"; exit 1 ;;
+  *) echo "usage: run_all.sh [probe|all|status|redo <stage>]"; exit 1 ;;
 esac
 
 export MODEL=${MODEL:?set MODEL to the probe choice, e.g. MODEL=Qwen/Qwen2.5-1.5B-Instruct}
